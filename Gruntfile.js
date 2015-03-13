@@ -17,23 +17,10 @@ module.exports = function(grunt) {
                 devel: true
             }
         },
-        testem: {
+        karma: {
             unit: {
-                options: {
-                    framework: 'jasmine2',
-                    launch_in_dev: ['PhantomJS'],
-                    before_tests: 'grunt jshint',
-                    serve_files: [
-                        'node_modules/lodash/lodash.js',
-                        'node_modules/jquery/dist/jquery.js',
-                        'src/**/*.js',
-                        'test/**/*.js'
-                    ],
-                    watch_files: [
-                        'src/**/*.js',
-                        'test/**/*.js'
-                    ]
-                }
+                configFile: 'karma.conf.js',
+                singleRun: true
             }
         },
         watch: {
@@ -45,8 +32,8 @@ module.exports = function(grunt) {
     });
 
     grunt.loadNpmTasks('grunt-contrib-jshint');
-    grunt.loadNpmTasks('grunt-contrib-testem');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-karma');
 
-    grunt.registerTask('default', ['testem:run:unit']);
+    grunt.registerTask('default', ['jshint', 'karma:unit']);
 };
