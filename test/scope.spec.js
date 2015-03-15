@@ -3,6 +3,13 @@
 "use strict";
 
 describe("Scope", function () {
+
+    var scope;
+
+    beforeEach(function () {
+        scope = new Scope();
+    });
+
     it("can be constructed and used as na object", function () {
         var scope = new Scope();
         scope.aProperty = 1;
@@ -10,13 +17,55 @@ describe("Scope", function () {
         expect(scope.aProperty).toBe(1);
     });
 
-    describe("digest", function () {
+    it("has a $$pahse field whose value is the current digest phase", function () {
+        scope.aValue = [1, 2, 3];
+        scope.phaseInWatchFunction = undefined;
+        scope.phaseInListenerFunction = undefined;
+        scope.phaseInApplyFunction = undefined;
 
-        var scope;
+        scope.$watch(
+            function (scope) {
+                scope.phaseInWatchFunction = scope.$$phase;
+                return scope.value;
+            },
+            function (newValue, oldValue, scope) {
+                scope.phaseInListenerFunction = scope.$$phase;
+            }
+        );
 
-        beforeEach(function () {
-            scope = new Scope();
+        scope.$apply(function (scope) {
+            scope.phaseInApplyFunction = scope.$$phase;
         });
+
+        expect(scope.phaseInWatchFunction).toBe('$digest');
+        expect(scope.phaseInListenerFunction).toBe('$digest');
+        expect(scope.phaseInApplyFunction).toBe('$apply');
+    });
+
+    it("schedules a digest in $evalAsync", function (done) {
+        scope.aValue = "abc";
+        scope.counter = 0;
+
+        scope.$watch(
+            function (scope) {
+                return scope.aValue;
+            },
+            function (newValue, oldValue, scope) {
+                scope.counter++;
+            }
+        );
+
+        scope.$evalAsynced(function(scope){
+        });
+
+        expect(scope.counter).toBe(0);
+        setTimeout(function() {
+            expect(scope.counter).toBe(1);
+            done();
+        }, 50);
+    });
+
+    describe("digest", function () {
 
         it("calls the listener function of a watch on first $digest", function () {
             var watchFn = function () {
@@ -268,11 +317,6 @@ describe("Scope", function () {
     });
 
     describe("eval", function () {
-        var scope;
-
-        beforeEach(function () {
-            scope = new Scope();
-        });
 
         it("executes $eval'ed function and returns result", function () {
             scope.aValue = 42;
@@ -296,11 +340,6 @@ describe("Scope", function () {
     });
 
     describe("apply", function () {
-        var scope;
-
-        beforeEach(function () {
-            scope = new Scope();
-        });
 
         it("executes $aplly'ed function and starts the digest", function () {
             scope.aValue = 'someValue';
@@ -318,7 +357,7 @@ describe("Scope", function () {
             scope.$digest();
             expect(scope.counter).toBe(1);
 
-            scope.$apply(function(scope) {
+            scope.$apply(function (scope) {
                 scope.aValue = 'someOtherValue';
             });
 
@@ -327,11 +366,6 @@ describe("Scope", function () {
     });
 
     describe("evalAsynced", function () {
-        var scope;
-
-        beforeEach(function () {
-            scope = new Scope();
-        });
 
         it("executes $evalAsynced function later in the same cycle", function () {
             scope.aValue = [1, 2, 3];
@@ -343,7 +377,7 @@ describe("Scope", function () {
                     return scope.aValue;
                 },
                 function (newValue, oldValue, scope) {
-                    scope.$evalAsynced(function(scope) {
+                    scope.$evalAsynced(function (scope) {
                         scope.asyncEvaluated = true;
                     });
                     scope.asyncEvaluatedImmediately = scope.asyncEvaluated;
@@ -354,6 +388,66 @@ describe("Scope", function () {
             expect(scope.asyncEvaluated).toBe(true);
             expect(scope.asyncEvaluatedImmediately).toBe(false);
         });
+
+        it("executes $evalAsynced functions added by watch functions", function () {
+            scope.aValue = [1, 2, 3];
+            scope.asyncEvaluated = false;
+
+            scope.$watch(
+                function (scope) {
+                    if (!scope.asyncEvaluated) {
+                        scope.$evalAsynced(function (scope) {
+                            scope.asyncEvaluated = true;
+                        });
+                    }
+                    return scope.aValue;
+                },
+                function (newValue, oldValue, scope) {
+                }
+            );
+
+            scope.$digest();
+            expect(scope.asyncEvaluated).toBe(true);
+        });
+
+        it("executes $evalAsynced functions even when not dirty", function () {
+            scope.aValue = [1, 2, 3];
+            scope.asyncEvaluatedTimes = 0;
+
+            scope.$watch(
+                function (scope) {
+                    if (scope.asyncEvaluatedTimes < 2) {
+                        scope.$evalAsynced(function (scope) {
+                            scope.asyncEvaluatedTimes++;
+                        });
+                    }
+                    return scope.aValue;
+                },
+                function (newValue, oldValue, scope) {
+                }
+            );
+
+            scope.$digest();
+            expect(scope.asyncEvaluatedTimes).toBe(2);
+        });
+
+        it("eventually halts $evalAsyncs added by watches", function () {
+            scope.aValue = [1, 2, 3];
+
+            scope.$watch(
+                function (scope) {
+                    scope.$evalAsynced(function (scope) {
+                    });
+                    return scope.aValue;
+                },
+                function (newValue, oldValue, scope) {
+                }
+            );
+            expect(function () {
+                scope.$digest();
+            }).toThrow();
+        });
     });
+
 
 });
