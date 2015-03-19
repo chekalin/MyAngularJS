@@ -225,15 +225,21 @@ Scope.prototype.$watchGroup = function (watchFns, listener) {
     };
 };
 
-Scope.prototype.$new = function () {
-    var ChildScope = function () {
-    };
-    ChildScope.prototype = this;
-    var childScope = new ChildScope();
-    this.$$children.push(childScope);
-    childScope.$$watchers = [];
-    childScope.$$children = [];
-    return childScope;
+Scope.prototype.$new = function (isolated) {
+    var child;
+    if (isolated) {
+        child = new Scope();
+        child.$root = this.$root;
+    } else {
+        var ChildScope = function () {
+        };
+        ChildScope.prototype = this;
+        child = new ChildScope();
+    }
+    this.$$children.push(child);
+    child.$$watchers = [];
+    child.$$children = [];
+    return child;
 };
 
 Scope.prototype.$$everyScope = function (fn) {
