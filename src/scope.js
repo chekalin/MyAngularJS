@@ -257,7 +257,7 @@ Scope.prototype.$$everyScope = function (fn) {
     }
 };
 
-Scope.prototype.$destroy = function() {
+Scope.prototype.$destroy = function () {
     if (this === this.$root) {
         return;
     }
@@ -266,4 +266,26 @@ Scope.prototype.$destroy = function() {
     if (indexOfThis >= 0) {
         siblings.splice(indexOfThis, 1);
     }
+};
+
+Scope.prototype.$watchCollection = function (watchFn, listenerFn) {
+    var self = this;
+    var oldValue;
+    var newValue;
+    var changeCount = 0;
+
+    var internalWatchFn = function (scope) {
+        newValue = watchFn(scope);
+        if (!self.$$areEqual(newValue, oldValue, false)) {
+            changeCount++;
+        }
+        oldValue = newValue;
+        return changeCount;
+    };
+
+    var internalListenerFn = function () {
+        listenerFn(newValue, oldValue, self);
+    };
+
+    return this.$watch(internalWatchFn, internalListenerFn);
 };

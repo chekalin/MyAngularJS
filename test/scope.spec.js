@@ -1274,25 +1274,25 @@ describe("Scope", function () {
         });
 
 
-        it("executes $evalAsync functions on isolated scopes", function(done) {
+        it("executes $evalAsync functions on isolated scopes", function (done) {
             var parent = new Scope();
             var child = parent.$new(true);
 
-            child.$evalAsync(function(scope) {
+            child.$evalAsync(function (scope) {
                 scope.didEvalAsync = true;
             });
 
-            setTimeout(function(){
+            setTimeout(function () {
                 expect(child.didEvalAsync).toBe(true);
                 done();
             }, 50);
         });
 
-        it("executes $$postDigest functions on isolated scopes", function() {
+        it("executes $$postDigest functions on isolated scopes", function () {
             var parent = new Scope();
             var child = parent.$new(true);
 
-            child.$$postDigest(function() {
+            child.$$postDigest(function () {
                 child.didPostDigest = true;
             });
 
@@ -1301,7 +1301,7 @@ describe("Scope", function () {
             expect(child.didPostDigest).toBe(true);
         });
 
-        it("can take some other scope as the parent", function(){
+        it("can take some other scope as the parent", function () {
             var prototypeParent = new Scope();
             var hierarchyParent = new Scope();
             var child = prototypeParent.$new(false, hierarchyParent);
@@ -1310,7 +1310,7 @@ describe("Scope", function () {
             expect(child.a).toBe(42);
 
             child.counter = 0;
-            child.$watch(function(scope){
+            child.$watch(function (scope) {
                 scope.counter++;
             });
 
@@ -1321,17 +1321,17 @@ describe("Scope", function () {
             expect(child.counter).toBe(2);
         });
 
-        it("is no longer digested when $destroy has been called", function() {
+        it("is no longer digested when $destroy has been called", function () {
             var parent = new Scope();
             var child = parent.$new();
 
             child.aValue = [1, 2, 3];
             child.counter = 0;
             child.$watch(
-                function(scope) {
+                function (scope) {
                     return scope.aValue;
                 },
-                function(newValue, oldValue, scope) {
+                function (newValue, oldValue, scope) {
                     scope.counter++;
                 },
                 true
@@ -1348,6 +1348,58 @@ describe("Scope", function () {
             child.aValue.push(5);
             parent.$digest();
             expect(child.counter).toBe(2);
+        });
+    });
+
+    describe("$watchCollection", function () {
+        it("works like a normal watch for non-collections", function () {
+            var valueProvided;
+
+            scope.aValue = 42;
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                function (scope) {
+                    return scope.aValue;
+                },
+                function (newValue, oldValue, scope) {
+                    valueProvided = newValue;
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+            expect(valueProvided).toBe(scope.aValue);
+
+            scope.aValue = 43;
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+
+            scope.$digest();
+            expect(scope.counter).toBe(2);
+        });
+
+        it("works like a normal watch for NaN", function () {
+            var valueProvided;
+
+            scope.aValue = 0 / 0;
+            scope.counter = 0;
+
+            scope.$watchCollection(
+                function (scope) {
+                    return scope.aValue;
+                },
+                function (newValue, oldValue, scope) {
+                    scope.counter++;
+                }
+            );
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
+
+            scope.$digest();
+            expect(scope.counter).toBe(1);
         });
     });
 
