@@ -14,6 +14,7 @@ function Scope() {
     this.$$applyAsyncId = null;
     this.$$children = [];
     this.$root = this;
+    this.$$listeners = {};
 }
 
 Scope.prototype.$watch = function (watchFn, listenerFn, valueEq) {
@@ -352,4 +353,12 @@ Scope.prototype.$watchCollection = function (watchFn, listenerFn) {
     };
 
     return this.$watch(internalWatchFn, internalListenerFn);
+};
+
+Scope.prototype.$on = function (eventName, listenerFn) {
+    var listeners = this.$$listeners[eventName];
+    if (!listeners) {
+        this.$$listeners[eventName] = listeners = [];
+    }
+    listeners.push(listenerFn);
 };
