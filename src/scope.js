@@ -244,6 +244,7 @@ Scope.prototype.$new = function (isolated, parent) {
     parent.$$children.push(child);
     child.$$watchers = [];
     child.$$children = [];
+    child.$$listeners = {};
     child.$parent = parent;
     return child;
 };
@@ -361,4 +362,20 @@ Scope.prototype.$on = function (eventName, listenerFn) {
         this.$$listeners[eventName] = listeners = [];
     }
     listeners.push(listenerFn);
+};
+
+Scope.prototype.$emit = function (eventName) {
+    this.$$fireEventOnScope(eventName);
+};
+
+Scope.prototype.$broadcast = function (eventName) {
+    this.$$fireEventOnScope(eventName);
+};
+
+Scope.prototype.$$fireEventOnScope = function (eventName) {
+    var event = {name: eventName};
+    var listeners = this.$$listeners[eventName] || [];
+    _.forEach(listeners, function (listener) {
+        listener(event);
+    });
 };
