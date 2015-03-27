@@ -357,25 +357,42 @@ Scope.prototype.$watchCollection = function (watchFn, listenerFn) {
 };
 
 Scope.prototype.$on = function (eventName, listenerFn) {
+    var self = this;
     var listeners = this.$$listeners[eventName];
     if (!listeners) {
         this.$$listeners[eventName] = listeners = [];
     }
     listeners.push(listenerFn);
+    return function () {
+        var index = listeners.indexOf(listenerFn);
+        if (index >= 0) {
+            listeners[index] = null;
+        }
+    };
 };
 
 Scope.prototype.$emit = function (eventName) {
-    this.$$fireEventOnScope(eventName);
+    var additionalArguments = _.rest(arguments);
+    return this.$$fireEventOnScope(eventName, additionalArguments);
 };
 
 Scope.prototype.$broadcast = function (eventName) {
-    this.$$fireEventOnScope(eventName);
+    var additionalArguments = _.rest(arguments);
+    return this.$$fireEventOnScope(eventName, additionalArguments);
 };
 
-Scope.prototype.$$fireEventOnScope = function (eventName) {
+Scope.prototype.$$fireEventOnScope = function (eventName, addtionalArguments) {
     var event = {name: eventName};
+    var listenerArgs = [event].concat(addtionalArguments);
     var listeners = this.$$listeners[eventName] || [];
-    _.forEach(listeners, function (listener) {
-        listener(event);
-    });
+    var i = 0;
+    while (i < listeners.length) {
+        if (listeners[i] === null) {
+            listeners.splice(i, 1);
+        } else {
+            listeners[i].apply(null, listenerArgs);
+            i++;
+        }
+    }
+    return event;
 };
