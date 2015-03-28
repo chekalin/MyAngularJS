@@ -1930,6 +1930,64 @@ describe("Scope", function () {
             });
         });
 
+        it("propagates up the scope hierarchy on $emit", function () {
+            var parentListener = jasmine.createSpy();
+            var scopeListener = jasmine.createSpy();
+
+            parent.$on('someEvent', parentListener);
+            scope.$on('someEvent', scopeListener);
+
+            scope.$emit('someEvent');
+
+            expect(scopeListener).toHaveBeenCalled();
+            expect(parentListener).toHaveBeenCalled();
+        });
+
+        it("propagates the same event up on $emit", function () {
+            var parentListener = jasmine.createSpy();
+            var scopeListener = jasmine.createSpy();
+
+            parent.$on('someEvent', parentListener);
+            scope.$on('someEvent', scopeListener);
+
+            scope.$emit('someEvent');
+
+            var scopeEvent = scopeListener.calls.mostRecent().args[0];
+            var parentEvent = parentListener.calls.mostRecent().args[0];
+            expect(scopeEvent).toBe(parentEvent);
+        });
+
+        it("propagates down the scope hierarchy on $broadcast", function () {
+            var scopeListener = jasmine.createSpy();
+            var childListener = jasmine.createSpy();
+            var isolatedChildListener = jasmine.createSpy();
+
+            child.$on('someEvent', childListener);
+            scope.$on('someEvent', scopeListener);
+            isolatedChild.$on('someEvent', isolatedChildListener);
+
+            scope.$broadcast('someEvent');
+
+            expect(scopeListener).toHaveBeenCalled();
+            expect(childListener).toHaveBeenCalled();
+            expect(isolatedChildListener).toHaveBeenCalled();
+        });
+
+        it("propagates the same event down on $broadcast", function () {
+            var scopeListener = jasmine.createSpy();
+            var childListener = jasmine.createSpy();
+
+            child.$on('someEvent', childListener);
+            scope.$on('someEvent', scopeListener);
+
+            scope.$broadcast('someEvent');
+
+            var childEvent = childListener.calls.mostRecent().args[0];
+            var scopeEvent = scopeListener.calls.mostRecent().args[0];
+
+            expect(childEvent).toBe(scopeEvent);
+        });
+
     });
 
 });
