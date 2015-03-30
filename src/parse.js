@@ -20,6 +20,8 @@ Lexer.prototype.lex = function (text) {
         if (this.isNumber(this.ch) ||
             (this.ch === '.' && this.isNumber(this.peek()))) {
             this.readNumber();
+        } else if (this.ch === '\'' || this.ch === '"') {
+            this.readString(this.ch);
         } else {
             throw 'Unexpected next character: ' + this.ch;
         }
@@ -67,6 +69,29 @@ Lexer.prototype.readNumber = function () {
         fn: _.constant(number),
         constant: true
     });
+};
+
+Lexer.prototype.readString = function (quote) {
+    this.index++;
+    var rawString = quote;
+    var string = '';
+    while (this.index < this.text.length) {
+        var ch = this.text.charAt(this.index);
+        rawString += ch;
+        if (ch === quote) {
+            this.index++;
+            this.tokens.push({
+                text: rawString,
+                constant: true,
+                fn: _.constant(string)
+            });
+            return;
+        } else {
+            string += ch;
+        }
+        this.index++;
+    }
+    throw 'Unmatched quote';
 };
 
 Lexer.prototype.isExpOperator = function (ch) {
