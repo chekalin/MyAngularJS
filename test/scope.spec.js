@@ -1,5 +1,6 @@
 /* jshint globalstrict: true */
 /* global Scope: false */
+/* global it, expect, describe, beforeEach: false */
 "use strict";
 
 describe("Scope", function () {

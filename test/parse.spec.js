@@ -1,5 +1,6 @@
 /* jshint globalstrict: true */
 /* global parse: false */
+/* global it, expect, describe, beforeEach: false */
 "use strict";
 
 describe("parse", function () {
