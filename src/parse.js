@@ -153,7 +153,7 @@ Lexer.prototype.readIdent = function () {
     var text = '';
     while (this.index < this.text.length) {
         var ch = this.text.charAt(this.index);
-        if (this.isIdent(ch) || this.isNumber(ch)) {
+        if (ch === '.' || this.isIdent(ch) || this.isNumber(ch)) {
             text += ch;
         } else {
             break;
@@ -162,9 +162,33 @@ Lexer.prototype.readIdent = function () {
     }
     var token = {
         text: text,
-        fn: CONSTANTS[text]
+        fn: CONSTANTS[text] || getterFn(text)
     };
     this.tokens.push(token);
+};
+
+var getterFn = function (ident) {
+    var pathKeys = ident.split(".");
+    if (pathKeys.length === 1) {
+        return simpleGetterFn1(pathKeys[0]);
+    } else {
+        return simpleGetterFn2(pathKeys[0], pathKeys[1]);
+    }
+};
+
+var simpleGetterFn1 = function (key1) {
+    return function (scope) {
+        return scope ? scope[key1] : undefined;
+    };
+};
+var simpleGetterFn2 = function (key1, key2) {
+    return function (scope) {
+        if (!scope) {
+            return undefined;
+        }
+        scope = scope[key1];
+        return scope ? scope[key2] : undefined;
+    };
 };
 
 Lexer.prototype.isExpOperator = function (ch) {
