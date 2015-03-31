@@ -15,6 +15,16 @@ var ESCAPES = {
     '"': '\"'
 };
 
+var CONSTANTS = {
+    'null': _.constant(null),
+    'true': _.constant(true),
+    'false': _.constant(false)
+};
+
+_.forEach(CONSTANTS, function (fn, constantName) {
+    fn.constant = fn.literal = true;
+});
+
 function Lexer() {
 }
 
@@ -31,6 +41,8 @@ Lexer.prototype.lex = function (text) {
             this.readNumber();
         } else if (this.ch === '\'' || this.ch === '"') {
             this.readString(this.ch);
+        } else if (this.isIdent(this.ch)) {
+            this.readIdent();
         } else {
             throw 'Unexpected next character: ' + this.ch;
         }
@@ -124,8 +136,32 @@ Lexer.prototype.readString = function (quote) {
     throw 'Unmatched quote';
 };
 
+
+Lexer.prototype.readIdent = function () {
+    var text = '';
+    while (this.index < this.text.length) {
+        var ch = this.text.charAt(this.index);
+        if (this.isIdent(ch) || this.isNumber(ch)) {
+            text += ch;
+        } else {
+            break;
+        }
+        this.index++;
+    }
+    var token = {
+        text: text,
+        fn: CONSTANTS[text]
+    };
+    this.tokens.push(token);
+};
+
 Lexer.prototype.isExpOperator = function (ch) {
     return ch === '-' || ch === '+' || this.isNumber(ch);
+};
+
+Lexer.prototype.isIdent = function (ch) {
+    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
+        ch === '_' || ch === '$';
 };
 
 function Parser(lexer) {
