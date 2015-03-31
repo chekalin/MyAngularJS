@@ -167,7 +167,7 @@ Lexer.prototype.readIdent = function () {
     this.tokens.push(token);
 };
 
-var getterFn = function (ident) {
+var getterFn = _.memoize(function (ident) {
     var pathKeys = ident.split(".");
     if (pathKeys.length === 1) {
         return simpleGetterFn1(pathKeys[0]);
@@ -176,7 +176,7 @@ var getterFn = function (ident) {
     } else {
         return generatedGetterFunction(pathKeys);
     }
-};
+});
 
 var simpleGetterFn1 = function (key1) {
     return function (scope) {
