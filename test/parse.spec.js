@@ -124,4 +124,9 @@ describe("parse", function () {
         expect(fn.literal).toBe(true);
         expect(fn.constant).toBe(true);
     });
+
+    it("ignores whitespace", function () {
+        var fn = parse(' \n42 ');
+        expect(fn()).toBe(42);
+    });
 });
