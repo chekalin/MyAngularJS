@@ -37,11 +37,11 @@ Lexer.prototype.lex = function (text) {
     while (this.index < this.text.length) {
         this.ch = this.text.charAt(this.index);
         if (this.isNumber(this.ch) ||
-            (this.ch === '.' && this.isNumber(this.peek()))) {
+            (this.is('.') && this.isNumber(this.peek()))) {
             this.readNumber();
-        } else if (this.ch === '\'' || this.ch === '"') {
+        } else if (this.is('\'"')) {
             this.readString(this.ch);
-        } else if (this.ch === '[' || this.ch === ']' || this.ch === ',') {
+        } else if (this.is("[],{}:")) {
             this.tokens.push({
                 text: this.ch
             });
@@ -56,6 +56,10 @@ Lexer.prototype.lex = function (text) {
     }
 
     return this.tokens;
+};
+
+Lexer.prototype.is = function (chs) {
+    return chs.indexOf(this.ch) >= 0;
 };
 
 Lexer.prototype.isNumber = function (ch) {
@@ -128,6 +132,7 @@ Lexer.prototype.readString = function (quote) {
         } else if (ch === quote) {
             this.index++;
             this.tokens.push({
+                string: string,
                 text: rawString,
                 constant: true,
                 fn: _.constant(string)
@@ -189,6 +194,8 @@ Parser.prototype.primary = function () {
     var primary;
     if (this.expect('[')) {
         primary = this.arrayDeclaration();
+    } else if (this.expect('{')) {
+        primary = this.object();
     } else {
         var token = this.expect();
         primary = token.fn;
@@ -241,4 +248,31 @@ Parser.prototype.peek = function (e) {
             return this.tokens[0];
         }
     }
+};
+
+Parser.prototype.object = function () {
+    var keyValues = [];
+    if (!this.peek('}')) {
+        do {
+            var keyToken = this.expect();
+            this.consume(':');
+            var valueExpression = this.primary();
+            keyValues.push({
+                key: keyToken.string || keyToken.text,
+                value: valueExpression
+            });
+        } while (this.expect(','));
+    }
+
+    this.consume('}');
+    var objectFn = function () {
+        var object = {};
+        _.forEach(keyValues, function (kv) {
+            object[kv.key] = kv.value();
+        });
+        return object;
+    };
+    objectFn.literal = true;
+    objectFn.constant = true;
+    return objectFn;
 };
