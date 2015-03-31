@@ -81,4 +81,20 @@ describe("parse", function () {
         expect(fn.literal).toBe(true);
         expect(fn.constant).toBe(true);
     });
+
+    it("will parse a string with character escapes", function () {
+        var fn = parse('"\\n\\r\\\\"');
+        expect(fn()).toEqual('\n\r\\');
+    });
+
+    it("will parse a string with unicode escapes", function () {
+        var fn = parse('"\\u00A0"');
+        expect(fn()).toEqual('\u00A0');
+    });
+
+    it("will not parse a string with invalid unicode escapes", function () {
+        expect(function () {
+            parse('"\\u00T0"');
+        }).toThrow();
+    });
 });
