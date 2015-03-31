@@ -171,7 +171,7 @@ var getterFn = function (ident) {
     var pathKeys = ident.split(".");
     if (pathKeys.length === 1) {
         return simpleGetterFn1(pathKeys[0]);
-    } else if (pathKeys.lenght === 2) {
+    } else if (pathKeys.length === 2) {
         return simpleGetterFn2(pathKeys[0], pathKeys[1]);
     } else {
         return generatedGetterFunction(pathKeys);
