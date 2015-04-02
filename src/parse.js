@@ -179,6 +179,7 @@ var getterFn = _.memoize(function (ident) {
 });
 
 var simpleGetterFn1 = function (key) {
+    ensureSafeMemeberName(key);
     return function (scope, locals) {
         if (!scope) {
             return undefined;
@@ -187,6 +188,8 @@ var simpleGetterFn1 = function (key) {
     };
 };
 var simpleGetterFn2 = function (key1, key2) {
+    ensureSafeMemeberName(key1);
+    ensureSafeMemeberName(key2);
     return function (scope, locals) {
         if (!scope) {
             return undefined;
@@ -200,6 +203,7 @@ var simpleGetterFn2 = function (key1, key2) {
 var generatedGetterFunction = function (keys) {
     var code = '';
     _.forEach(keys, function (key, idx) {
+        ensureSafeMemeberName(key);
         code += 'if (!scope) { return undefined; } \n';
         if (idx === 0) {
             code += 'scope = (locals && locals.hasOwnProperty("' + key + '")) ?' +
@@ -298,7 +302,21 @@ Parser.prototype.functionCall = function (fnFn) {
         });
         return fn.apply(null, args);
     };
+};
 
+var ensureSafeMemeberName = function (name) {
+    var unsafeNames = [
+        'constructor',
+        '__proto__',
+        '__defineGetter__',
+        '__defineSetter__',
+        '__lookupGetter__',
+        '__lookupSetter__'
+    ];
+
+    if (unsafeNames.indexOf(name) != -1) {
+        throw 'Referencing "constructor" field in expressions is disallowed';
+    }
 };
 
 Parser.prototype.expect = function (e1, e2, e3, e4) {
