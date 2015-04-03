@@ -381,4 +381,58 @@ describe("parse", function () {
             fn({obj: {}});
         }).toThrow();
     });
+
+    it("calls functions accessed as properties with correct this", function () {
+        var scope = {
+            anObject: {
+                aMember: 42,
+                aFunction: function () {
+                    return this.aMember;
+                }
+            }
+        };
+        var fn = parse('anObject["aFunction"]()');
+        expect(fn(scope)).toBe(42);
+    });
+
+    it("calls functions accessed as fields with correct this", function () {
+        var scope = {
+            anObject: {
+                aMember: 42,
+                aFunction: function () {
+                    return this.aMember;
+                }
+            }
+        };
+        var fn = parse('anObject.aFunction()');
+        expect(fn(scope)).toBe(42);
+    });
+
+    it("calls methods with whitespaces before function call", function () {
+        var scope = {
+            anObject: {
+                aMember: 42,
+                aFunction: function () {
+                    return this.aMember;
+                }
+            }
+        };
+        var fn = parse('anObject.aFunction   ()');
+        expect(fn(scope)).toBe(42);
+    });
+
+    it("calls the this context on function calls", function () {
+        var scope = {
+            anObject: {
+                aMember: 42,
+                aFunction: function () {
+                    return function () {
+                        return this.aMember;
+                    };
+                }
+            }
+        };
+        var fn = parse('anObject.aFunction()()');
+        expect(fn(scope)).toBeUndefined();
+    });
 });
