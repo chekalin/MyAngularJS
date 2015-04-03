@@ -21,6 +21,10 @@ var CONSTANTS = {
     'false': _.constant(false)
 };
 
+var CALL = Function.prototype.call;
+var APPLY = Function.prototype.apply;
+var BIND = Function.prototype.bind;
+
 _.forEach(CONSTANTS, function (fn, constantName) {
     fn.constant = fn.literal = true;
 });
@@ -329,7 +333,7 @@ Parser.prototype.functionCall = function (fnFn, contextFn) {
     this.consume(')');
     return function (scope, locals) {
         var context = ensureSafeObject(contextFn ? contextFn(scope, locals) : scope);
-        var fn = ensureSafeObject(fnFn(scope, locals));
+        var fn = ensureSafeFunction(fnFn(scope, locals));
         var args = _.map(argFns, function (argFn) {
             return argFn(scope, locals);
         });
@@ -436,4 +440,15 @@ var ensureSafeObject = function (obj) {
         }
     }
     return obj;
+};
+
+var ensureSafeFunction = function (fun) {
+    if (fun) {
+        if (fun.constructor === fun) {
+            throw "referencing Function in Angular expressions is disallowed!";
+        } else if (fun === APPLY || fun === BIND || fun === CALL) {
+            throw "referencing call, apply or bind in Angular expressions is disallowed!";
+        }
+    }
+    return fun;
 };
