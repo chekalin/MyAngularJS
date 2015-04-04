@@ -667,4 +667,32 @@ describe("parse", function () {
     it("parses several multiplicative operations", function () {
         expect(parse('36 * 2 % 5')()).toBe(2);
     });
+
+    it("parses an addition", function () {
+        expect(parse('22 + 20')()).toBe(42);
+    });
+
+    it("parses a subtraction", function () {
+        expect(parse('42 - 22')()).toBe(20);
+    });
+
+    it("parses multiplicatives on a higher precedence than additives", function () {
+        expect(parse('2 + 3 * 5')()).toBe(17);
+        expect(parse('2 + 3 * 2 + 3')()).toBe(11);
+    });
+
+    it("treats a missing subtraction operand as zero", function () {
+        expect(parse('a - b')({a: 20})).toBe(20);
+        expect(parse('a - b')({b: 20})).toBe(-20);
+        expect(parse('a - b')({})).toBe(0);
+    });
+
+    it("treats a missing addition operand as zero", function () {
+        expect(parse('a + b')({a: 20})).toBe(20);
+        expect(parse('a + b')({b: 20})).toBe(20);
+    });
+
+    it("returns undefined from addition when both operands missing", function () {
+        expect(parse('a + b')({})).toBeUndefined();
+    });
 });
