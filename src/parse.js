@@ -31,12 +31,23 @@ var OPERATORS = {
         a = a(self, locals);
         b = b(self, locals);
         return (_.isUndefined(a) ? 0 : a) - (_.isUndefined(b) ? 0 : b);
+    },
+    '*': function (self, locals, a, b) {
+        return a(self, locals) * b(self, locals);
+    },
+    '/': function (self, locals, a, b) {
+        return a(self, locals) / b(self, locals);
+    },
+    '%': function (self, locals, a, b) {
+        return a(self, locals) % b(self, locals);
     }
 };
 
 var CALL = Function.prototype.call;
 var APPLY = Function.prototype.apply;
 var BIND = Function.prototype.bind;
+
+Parser.ZERO = _.extend(_.constant(0), {constant: true});
 
 _.forEach(CONSTANTS, function (fn, constantName) {
     fn.constant = fn.literal = true;
@@ -507,12 +518,12 @@ var ensureSafeFunction = function (fun) {
 };
 
 Parser.prototype.assignment = function () {
-    var left = this.unary();
+    var left = this.multiplicative();
     if (this.expect('=')) {
         if (!left.assign) {
             throw "Implies assignment but cannot be assigned to";
         }
-        var right = this.unary();
+        var right = this.multiplicative();
         return function (scope, locals) {
             return left.assign(scope, right(scope, locals), locals);
         };
@@ -534,13 +545,25 @@ Parser.prototype.unary = function () {
         unaryFn.constant = operand.constant;
         return unaryFn;
     } else if ((operator = this.expect('-'))) {
-        operand = parser.unary();
-        var binaryFn = function (self, locals) {
-            return operator.fn(self, locals, _.constant(0), operand);
-        };
-        binaryFn.constant = operand.constant;
-        return binaryFn;
+        return this.binaryFn(Parser.ZERO, operator.fn, parser.unary());
     } else {
         return this.primary();
     }
+};
+
+Parser.prototype.multiplicative = function () {
+    var left = this.unary();
+    var operator;
+    while ((operator = this.expect('*', '/', '%'))) {
+        left = this.binaryFn(left, operator.fn, this.unary());
+    }
+    return left;
+};
+
+Parser.prototype.binaryFn = function (left, op, right) {
+    var fn = function (self, locals) {
+        return op(self, locals, left, right);
+    };
+    fn.constant = left.constant && right.constant;
+    return fn;
 };
