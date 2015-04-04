@@ -401,17 +401,17 @@ Parser.prototype.arrayDeclaration = function () {
             if (this.peek(']')) {
                 break;
             }
-            elementFns.push(this.primary());
+            elementFns.push(this.assignment());
         } while (this.expect(','));
     }
     this.consume(']');
-    var arrayFn = function () {
+    var arrayFn = function (scope, locals) {
         return _.map(elementFns, function (elementFn) {
-            return elementFn();
+            return elementFn(scope, locals);
         });
     };
     arrayFn.literal = true;
-    arrayFn.constant = true;
+    arrayFn.constant = _.every(elementFns, 'constant');
     return arrayFn;
 };
 
@@ -437,7 +437,7 @@ Parser.prototype.object = function () {
         do {
             var keyToken = this.expect();
             this.consume(':');
-            var valueExpression = this.primary();
+            var valueExpression = this.assignment();
             keyValues.push({
                 key: keyToken.string || keyToken.text,
                 value: valueExpression
@@ -446,15 +446,15 @@ Parser.prototype.object = function () {
     }
 
     this.consume('}');
-    var objectFn = function () {
+    var objectFn = function (scope, locals) {
         var object = {};
         _.forEach(keyValues, function (kv) {
-            object[kv.key] = kv.value();
+            object[kv.key] = kv.value(scope, locals);
         });
         return object;
     };
     objectFn.literal = true;
-    objectFn.constant = true;
+    objectFn.constant = _(keyValues).pluck('value').every('constant');
     return objectFn;
 };
 
