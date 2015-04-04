@@ -75,7 +75,13 @@ var OPERATORS = {
     '!==': function (self, locals, a, b) {
         return a(self, locals) !== b(self, locals);
     },
-    '=': _.noop
+    '=': _.noop,
+    '&&': function (self, locals, a, b) {
+        return a(self, locals) && b(self, locals);
+    },
+    '||': function (self, locals, a, b) {
+        return a(self, locals) || b(self, locals);
+    }
 };
 
 var CALL = Function.prototype.call;
@@ -570,12 +576,12 @@ var ensureSafeFunction = function (fun) {
 };
 
 Parser.prototype.assignment = function () {
-    var left = this.equality();
+    var left = this.logicalOR();
     if (this.expect('=')) {
         if (!left.assign) {
             throw "Implies assignment but cannot be assigned to";
         }
-        var right = this.equality();
+        var right = this.logicalOR();
         return function (scope, locals) {
             return left.assign(scope, right(scope, locals), locals);
         };
@@ -635,6 +641,24 @@ Parser.prototype.equality = function () {
     var operator;
     while ((operator = this.expect('==', '!=', '===', '!=='))) {
         left = this.binaryFn(left, operator.fn, this.relational());
+    }
+    return left;
+};
+
+Parser.prototype.logicalAND = function () {
+    var left = this.equality();
+    var operator;
+    while ((operator = this.expect('&&'))) {
+        left = this.binaryFn(left, operator.fn, this.equality());
+    }
+    return left;
+};
+
+Parser.prototype.logicalOR = function () {
+    var left = this.logicalAND();
+    var operator;
+    while ((operator = this.expect('||'))) {
+        left = this.binaryFn(left, operator.fn, this.logicalAND());
     }
     return left;
 };
