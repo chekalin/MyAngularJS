@@ -110,7 +110,7 @@ Lexer.prototype.lex = function (text) {
             this.readNumber();
         } else if (this.is('\'"')) {
             this.readString(this.ch);
-        } else if (this.is("[],{}:.()")) {
+        } else if (this.is("[],{}:.()?")) {
             this.tokens.push({
                 text: this.ch
             });
@@ -576,12 +576,12 @@ var ensureSafeFunction = function (fun) {
 };
 
 Parser.prototype.assignment = function () {
-    var left = this.logicalOR();
+    var left = this.ternary();
     if (this.expect('=')) {
         if (!left.assign) {
             throw "Implies assignment but cannot be assigned to";
         }
-        var right = this.logicalOR();
+        var right = this.ternary();
         return function (scope, locals) {
             return left.assign(scope, right(scope, locals), locals);
         };
@@ -669,4 +669,20 @@ Parser.prototype.binaryFn = function (left, op, right) {
     };
     fn.constant = left.constant && right.constant;
     return fn;
+};
+
+Parser.prototype.ternary = function () {
+    var left = this.logicalOR();
+    if (this.expect('?')) {
+        var middle = this.assignment();
+        this.consume(':');
+        var right = this.assignment();
+        var ternaryFn = function (self, locals) {
+            return left(self, locals) ? middle(self, locals) : right(self, locals);
+        };
+        ternaryFn.constant = left.constant && middle.constant && right.constant;
+        return ternaryFn;
+    } else {
+        return left;
+    }
 };
