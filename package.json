@@ -1,12 +1,15 @@
 {
   "name": "MyAngularJS",
   "version": "0.0.0",
-  "scripts" : { "test" : "grunt" },
+  "scripts": {
+    "test": "grunt"
+  },
   "dependencies": {
     "lodash": "~3.6.0",
     "jquery": "~2.1.0-beta3"
   },
   "devDependencies": {
+    "grunt": "^0.4.5",
     "grunt-contrib-jshint": "~0.8.0",
     "grunt-contrib-watch": "^0.6.1",
     "grunt-karma": "^0.10.1",
