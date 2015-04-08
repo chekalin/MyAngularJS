@@ -1,6 +1,9 @@
 module.exports = function(grunt) {
 
     grunt.initConfig({
+        clean: {
+            build: ['build']
+        },
         jshint: {
             all: ['src/**/*.js', 'test/**/*.js'],
             options: {
@@ -31,9 +34,12 @@ module.exports = function(grunt) {
         }
     });
 
+    grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-karma');
 
-    grunt.registerTask('default', ['jshint', 'karma:unit']);
+    grunt.registerTask('default', ['test']);
+
+    grunt.registerTask('test', ['clean', 'jshint', 'karma:unit']);
 };
