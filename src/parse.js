@@ -18,6 +18,8 @@ function parse(expr) {
                 parseFn = wrapSharedExpression(parseFn);
                 parseFn.$$watchDelegate = parseFn.literal ? oneTimeLiteralWatchDelegate :
                     oneTimeWatchDelegate;
+            } else if (parseFn.inputs) {
+                parseFn.$$watchDelegate = inputsWatchDelegate;
             }
             return parseFn;
         case 'function':
@@ -91,6 +93,36 @@ function oneTimeLiteralWatchDelegate(scope, listenerFn, valueEq, watchFn) {
     );
 
     return unwatch;
+}
+
+function inputsWatchDelegate(scope, listenerFn, valueEq, watchFn) {
+    var inputExpressions = watchFn.inputs;
+
+    var oldValues = _.times(inputExpressions.length, _.constant(function () {
+    }));
+    var lastResult;
+
+    return scope.$watch(function () {
+        var changed = false;
+        _.forEach(inputExpressions, function (inputExpr, i) {
+            var newValue = inputExpr(scope);
+            if (changed || !expressionInputDirtyCheck(newValue, oldValues[i])) {
+                changed = true;
+                oldValues[i] = newValue;
+            }
+        });
+        if (changed) {
+            lastResult = watchFn(scope);
+        }
+        return lastResult;
+    }, listenerFn, valueEq);
+
+}
+
+function expressionInputDirtyCheck(newValue, oldValue) {
+    return newValue === oldValue ||
+        (typeof newValue === 'number' && typeof oldValue === 'number' &&
+        isNaN(newValue) && isNaN(oldValue));
 }
 
 function wrapSharedExpression(exprFn) {
@@ -612,6 +644,7 @@ Parser.prototype.arrayDeclaration = function () {
     };
     arrayFn.literal = true;
     arrayFn.constant = _.every(elementFns, 'constant');
+    arrayFn.inputs = elementFns;
     return arrayFn;
 };
 
@@ -655,6 +688,7 @@ Parser.prototype.object = function () {
     };
     objectFn.literal = true;
     objectFn.constant = _(keyValues).pluck('value').every('constant');
+    objectFn.inputs = _.pluck(keyValues, 'value');
     return objectFn;
 };
 
@@ -691,9 +725,12 @@ Parser.prototype.assignment = function () {
             throw "Implies assignment but cannot be assigned to";
         }
         var right = this.ternary();
-        return function (scope, locals) {
+
+        var assignmentFn = function (scope, locals) {
             return left.assign(scope, right(scope, locals), locals);
         };
+        assignmentFn.inputs = [left, right];
+        return assignmentFn;
     }
     return left;
 };
@@ -710,6 +747,7 @@ Parser.prototype.unary = function () {
             return operator.fn(self, locals, operand);
         };
         unaryFn.constant = operand.constant;
+        unaryFn.inputs = [operand];
         return unaryFn;
     } else if ((operator = this.expect('-'))) {
         return this.binaryFn(Parser.ZERO, operator.fn, parser.unary());
@@ -776,6 +814,7 @@ Parser.prototype.binaryFn = function (left, op, right) {
     var fn = function (self, locals) {
         return op(self, locals, left, right);
     };
+    fn.inputs = [left, right];
     fn.constant = left.constant && right.constant;
     return fn;
 };
