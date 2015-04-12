@@ -95,8 +95,24 @@ function oneTimeLiteralWatchDelegate(scope, listenerFn, valueEq, watchFn) {
     return unwatch;
 }
 
+function collectExpressionInputs(inputs, results) {
+    _.forEach(inputs, function (input) {
+        if (!input.constant) {
+            if (input.inputs) {
+                collectExpressionInputs(input.inputs, results);
+            } else if (results.indexOf(input) === -1) {
+                results.push(input);
+            }
+        }
+    });
+    return results;
+}
+
 function inputsWatchDelegate(scope, listenerFn, valueEq, watchFn) {
-    var inputExpressions = watchFn.inputs;
+    if (!watchFn.$$inputs) {
+        watchFn.$$inputs = collectExpressionInputs(watchFn.inputs, []);
+    }
+    var inputExpressions = watchFn.$$inputs;
 
     var oldValues = _.times(inputExpressions.length, _.constant(function () {
     }));
@@ -796,7 +812,7 @@ Parser.prototype.logicalAND = function () {
     var left = this.equality();
     var operator;
     while ((operator = this.expect('&&'))) {
-        left = this.binaryFn(left, operator.fn, this.equality());
+        left = this.binaryFn(left, operator.fn, this.equality(), true);
     }
     return left;
 };
@@ -805,16 +821,16 @@ Parser.prototype.logicalOR = function () {
     var left = this.logicalAND();
     var operator;
     while ((operator = this.expect('||'))) {
-        left = this.binaryFn(left, operator.fn, this.logicalAND());
+        left = this.binaryFn(left, operator.fn, this.logicalAND(), true);
     }
     return left;
 };
 
-Parser.prototype.binaryFn = function (left, op, right) {
+Parser.prototype.binaryFn = function (left, op, right, isShortCircuiting) {
     var fn = function (self, locals) {
         return op(self, locals, left, right);
     };
-    fn.inputs = [left, right];
+    fn.inputs = !isShortCircuiting && [left, right];
     fn.constant = left.constant && right.constant;
     return fn;
 };
