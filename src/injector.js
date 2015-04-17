@@ -7,18 +7,30 @@ var FN_ARG = /^\s*(_?)(\S+?)\1\s*$/;
 var STRIP_COMMENTS = /(\/\/.*$)|(\/\*.*?\*\/)/mg;
 
 function createInjector(modulesToLoad, strictDi) {
-    var cache = {};
+    var instanceCache = {};
+    var providerCache = {};
     var loadedModules = {};
     strictDi = (strictDi === true);
-
     var $provide = {
         constant: function (key, value) {
             if (key === 'hasOwnProperty') {
                 throw 'hasOwnProperty is not a valid constant name!';
             }
-            cache[key] = value;
+            instanceCache[key] = value;
+        },
+        provider: function (key, provider) {
+            providerCache[key + 'Provider'] = provider;
         }
     };
+
+    function getService(name) {
+        if (instanceCache.hasOwnProperty(name)) {
+            return instanceCache[name];
+        } else if (providerCache.hasOwnProperty(name + 'Provider')) {
+            var provider = providerCache[name + 'Provider'];
+            return invoke(provider.$get, provider);
+        }
+    }
 
     function annotate(fn) {
         if (_.isArray(fn)) {
@@ -45,7 +57,7 @@ function createInjector(modulesToLoad, strictDi) {
             if (_.isString(token)) {
                 return locals && locals.hasOwnProperty(token) ?
                     locals[token] :
-                    cache[token];
+                    getService(token);
             } else {
                 throw 'Incorrect injection token! Expected string got ' + token;
             }
@@ -77,11 +89,10 @@ function createInjector(modulesToLoad, strictDi) {
     });
     return {
         has: function (key) {
-            return cache.hasOwnProperty(key);
+            return instanceCache.hasOwnProperty(key) ||
+                providerCache.hasOwnProperty(key + 'Provider');
         },
-        get: function (key) {
-            return cache[key];
-        },
+        get: getService,
         invoke: invoke,
         annotate: annotate,
         instantiate: instantiate
