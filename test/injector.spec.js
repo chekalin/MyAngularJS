@@ -731,4 +731,41 @@ describe('injector', function () {
         expect(result).toBe(3);
     });
 
+    it('runs a function module dependency as a config block', function () {
+        var functionModule = function ($provide) {
+            $provide.constant('a', 42);
+        };
+        angular.module('myModule', [functionModule]);
+
+        var injector = createInjector(['myModule']);
+
+        expect(injector.get('a')).toBe(42);
+    });
+
+    it('runs a function module with array injection as a config block', function () {
+        var functionModule = ['$provide', function ($provide) {
+            $provide.constant('a', 42);
+        }];
+        angular.module('myModule', [functionModule]);
+
+        var injector = createInjector(['myModule']);
+
+        expect(injector.get('a')).toBe(42);
+    });
+
+    it('supports running a run block from a function module', function () {
+        var result = null;
+        var functionModule = function ($provide) {
+            $provide.constant('a', 42);
+            return function (a) {
+                result = a;
+            };
+        };
+        angular.module('myModule', [functionModule]);
+
+        createInjector(['myModule']);
+
+        expect(result).toBe(42);
+    });
+
 });
