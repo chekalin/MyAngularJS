@@ -7,7 +7,7 @@ function setupModuleLoader(window) {
     }
 
     var angular = ensure(window, 'angular', Object);
-    var createModule = function (name, requires, modules) {
+    var createModule = function (name, requires, modules, configFn) {
         if (name === 'hasOwnProperty') {
             throw 'hasOwnProperty is not a valid module name';
         }
@@ -27,9 +27,17 @@ function setupModuleLoader(window) {
             constant: invokeLater('$provide', 'constant', 'unshift'),
             provider: invokeLater('$provide', 'provider'),
             config: invokeLater('$injector', 'invoke', 'push', configBlocks),
+            run: function (fn) {
+                moduleInstance._runBlocks.push(fn);
+                return moduleInstance;
+            },
             _invokeQueue: invokeQueue,
-            _configBlocks: configBlocks
+            _configBlocks: configBlocks,
+            _runBlocks: []
         };
+        if (configFn) {
+            moduleInstance.config(configFn);
+        }
         modules[name] = moduleInstance;
         return moduleInstance;
     };
@@ -44,9 +52,9 @@ function setupModuleLoader(window) {
 
     ensure(angular, 'module', function () {
         var modules = {};
-        return function (name, requires) {
+        return function (name, requires, configFn) {
             if (requires) {
-                return createModule(name, requires, modules);
+                return createModule(name, requires, modules, configFn);
             } else {
                 return getModule(name, modules);
             }
