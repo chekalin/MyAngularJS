@@ -1,5 +1,5 @@
 /* jshint globalstrict: true */
-/* global angular: false */
+/* global angular, HashMap: false */
 'use strict';
 
 var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
@@ -17,7 +17,7 @@ function createInjector(modulesToLoad, strictDi) {
         var provider = providerInjector.get(name + 'Provider');
         return instanceInjector.invoke(provider.$get, provider);
     });
-    var loadedModules = {};
+    var loadedModules = new HashMap();
     var path = [];
     strictDi = (strictDi === true);
     providerCache.$provide = {
@@ -124,19 +124,18 @@ function createInjector(modulesToLoad, strictDi) {
 
     var runBlocks = [];
     _.forEach(modulesToLoad, function loadModule(module) {
-        if (_.isString(module)) {
-            if (!loadedModules.hasOwnProperty(module)) {
-                loadedModules[module] = true;
+        if (!loadedModules.get(module)) {
+            loadedModules.put(module, true);
+            if (_.isString(module)) {
                 module = angular.module(module);
                 _.forEach(module.requires, loadModule);
                 runInvokeQueue(module._invokeQueue);
                 runInvokeQueue(module._configBlocks);
                 runBlocks = runBlocks.concat(module._runBlocks);
+            } else if (_.isFunction(module) || _.isArray(module)) {
+                runBlocks.push(providerInjector.invoke(module));
             }
-        } else if (_.isFunction(module) || _.isArray(module)) {
-            runBlocks.push(providerInjector.invoke(module));
         }
-
     });
     _.forEach(_.compact(runBlocks), function (runBlock) {
         instanceInjector.invoke(runBlock);

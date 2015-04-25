@@ -95,4 +95,34 @@ describe('apis', function () {
             })).toEqual('object:42');
         });
     });
+
+    describe('HashMap', function () {
+
+        it('supports put and get of primitives', function () {
+            var map = new HashMap();
+            map.put(42, 'forty two');
+            expect(map.get(42)).toEqual('forty two');
+        });
+
+        it('supports put and get of objects with hashKey semantics', function () {
+            var map = new HashMap();
+            var obj = {};
+            map.put(obj, 'myValue');
+            expect(map.get(obj)).toEqual('myValue');
+            expect(map.get({})).toBeUndefined();
+        });
+
+        it('supports remove', function () {
+            var map = new HashMap();
+            map.put(42, 'forty two');
+            map.remove(42);
+            expect(map.get(42)).toBeUndefined();
+        });
+
+        it('returns value from remove', function () {
+            var map = new HashMap();
+            map.put(42, 'forty two');
+            expect(map.remove(42)).toEqual('forty two');
+        });
+    });
 });
