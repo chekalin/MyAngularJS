@@ -1,9 +1,16 @@
 /* jshint globalstrict: true */
-/* global parse: false */
+/* global publishExternalAPI, createInjector: false */
 /* global it, expect, describe, beforeEach: false */
 "use strict";
 
 describe("parse", function () {
+
+    var parse;
+
+    beforeEach(function () {
+        publishExternalAPI();
+        parse = createInjector(['ng']).get('$parse');
+    });
 
     it("can parse an integer", function () {
         var fn = parse('42');
