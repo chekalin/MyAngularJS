@@ -55,13 +55,20 @@ function $QProvider() {
         function Deferred() {
             this.promise = new Promise();
 
-            this.resolve = function (v) {
+            this.resolve = function (value) {
                 if (this.promise.$$state.status) {
                     return;
                 }
-                this.promise.$$state.value = v;
-                this.promise.$$state.status = 1;
-                scheduleProcessQueue(this.promise.$$state);
+                if (value && _.isFunction(value.then)) {
+                    value.then(
+                        _.bind(this.resolve, this),
+                        _.bind(this.reject, this)
+                    );
+                } else {
+                    this.promise.$$state.value = value;
+                    this.promise.$$state.status = 1;
+                    scheduleProcessQueue(this.promise.$$state);
+                }
             };
 
             this.reject = function (v) {
