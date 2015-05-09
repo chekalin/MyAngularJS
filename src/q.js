@@ -63,12 +63,13 @@ function $QProvider() {
             this.catch = function (onRejected) {
                 return this.then(null, onRejected);
             };
-            this.finally = function (callback) {
+            this.finally = function (callback, progressBack) {
                 return this.then(function (value) {
                         return handleFinallyCallback(callback, value, true);
                     }, function (rejection) {
                         return handleFinallyCallback(callback, rejection, false);
-                    }
+                    },
+                    progressBack
                 );
             };
         }
@@ -83,7 +84,8 @@ function $QProvider() {
                 if (value && _.isFunction(value.then)) {
                     value.then(
                         _.bind(this.resolve, this),
-                        _.bind(this.reject, this)
+                        _.bind(this.reject, this),
+                        _.bind(this.notify, this)
                     );
                 } else {
                     this.promise.$$state.value = value;
@@ -125,8 +127,22 @@ function $QProvider() {
             return new Deferred();
         }
 
+        function reject(rejection) {
+            var d = defer();
+            d.reject(rejection);
+            return d.promise;
+        }
+
+        function when(value, callback, errback, progressback) {
+            var d = defer();
+            d.resolve(value);
+            return d.promise.then(callback, errback, progressback);
+        }
+
         return {
-            defer: defer
+            defer: defer,
+            reject: reject,
+            when: when
         };
     }];
 

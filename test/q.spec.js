@@ -604,4 +604,98 @@ describe('$q', function () {
         expect(progressSpy).toHaveBeenCalledWith('Working...');
         expect(fulfilledSpy).toHaveBeenCalledWith('ok');
     });
+
+    it('can notify progress through promise returned from handler', function() {
+        var d = $q.defer();
+        var progressSpy = jasmine.createSpy();
+        d.promise.then(null, null, progressSpy);
+
+        var d2 = $q.defer();
+        // resolve original with nested promise
+        d.resolve(d2.promise);
+        // notify on nested promise
+        d2.notify('working...');
+
+        $rootScope.$apply();
+
+        expect(progressSpy).toHaveBeenCalledWith('working...');
+    });
+
+    it('allows attaching progressback in finally', function() {
+        var d = $q.defer();
+        var progressSpy = jasmine.createSpy();
+        d.promise.finally(null, progressSpy);
+
+        d.notify('working...');
+        $rootScope.$apply();
+
+        expect(progressSpy).toHaveBeenCalledWith('working...');
+    });
+
+    it('can make an immediately rejected promise', function() {
+        var fulfilledSpy = jasmine.createSpy();
+        var rejectedSpy = jasmine.createSpy();
+
+        var promise = $q.reject('fail');
+        promise.then(fulfilledSpy, rejectedSpy);
+
+        $rootScope.$apply();
+
+        expect(fulfilledSpy).not.toHaveBeenCalled();
+        expect(rejectedSpy).toHaveBeenCalledWith('fail');
+    });
+
+    it('can make an immediately resolved promise', function() {
+        var fulfilledSpy = jasmine.createSpy();
+        var rejectedSpy = jasmine.createSpy();
+
+        var promise = $q.when('ok');
+        promise.then(fulfilledSpy, rejectedSpy);
+
+        $rootScope.$apply();
+
+        expect(fulfilledSpy).toHaveBeenCalledWith('ok');
+        expect(rejectedSpy).not.toHaveBeenCalled();
+    });
+
+    it('can wrap foreign promise', function() {
+        var fulfilledSpy = jasmine.createSpy();
+        var rejectedSpy = jasmine.createSpy();
+
+        var promise = $q.when({
+            then: function(handler) {
+                $rootScope.$evalAsync(function() {
+                    handler('ok');
+                });
+            }
+        });
+        promise.then(fulfilledSpy, rejectedSpy);
+
+        $rootScope.$apply();
+
+        expect(fulfilledSpy).toHaveBeenCalledWith('ok');
+        expect(rejectedSpy).not.toHaveBeenCalled();
+    });
+
+    it('takes callbacks directly when wrapping', function() {
+        var fulfilledSpy = jasmine.createSpy();
+        var rejectedSpy = jasmine.createSpy();
+        var progressSpy = jasmine.createSpy();
+
+        var wrapped = $q.defer();
+        $q.when(
+            wrapped.promise,
+            fulfilledSpy,
+            rejectedSpy,
+            progressSpy
+        );
+
+        wrapped.notify('working...');
+        wrapped.resolve('ok');
+        $rootScope.$apply();
+
+        expect(fulfilledSpy).toHaveBeenCalledWith('ok');
+        expect(rejectedSpy).not.toHaveBeenCalled();
+        expect(progressSpy).toHaveBeenCalledWith('working...');
+    });
 });
