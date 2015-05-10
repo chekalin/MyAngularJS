@@ -1,6 +1,6 @@
 /* jshint maxstatements: false */
-/* global publishExternalAPI, createInjector: false */
-/* global it, expect, describe, beforeEach: false */
+/* global publishExternalAPI, createInjector */
+/* global jasmine, it, expect, describe, beforeEach */
 
 describe("Scope", function () {
     "use strict";

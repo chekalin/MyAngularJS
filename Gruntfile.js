@@ -7,18 +7,7 @@ module.exports = function (grunt) {
         jshint: {
             all: ['src/**/*.js', 'test/**/*.js'],
             options: {
-                jshintrc: true,
-                globals: {
-                    _: false,
-                    $: false,
-                    jasmine: false,
-                    describe: false,
-                    it: false,
-                    expect: false,
-                    beforeEach: false
-                },
-                browser: true,
-                devel: true
+                jshintrc: true
             }
         },
         karma: {

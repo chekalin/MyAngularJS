@@ -1,9 +1,8 @@
-/* jshint globalstrict: true */
 /* global hashKey, HashMap: false */
-/* global it, expect, describe, beforeEach: false */
-'use strict';
+/* global jasmine, it, expect, describe, beforeEach: false */
 
 describe('apis', function () {
+    'use strict';
 
     describe('hashKey', function () {
 

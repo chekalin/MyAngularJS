@@ -1,6 +1,6 @@
 /* jshint maxstatements: false */
 /* global setupModuleLoader, createInjector, angular: false */
-/* global it, expect, describe, beforeEach: false */
+/* global jasmine, it, expect, describe, beforeEach */
 
 describe('injector', function () {
     'use strict';

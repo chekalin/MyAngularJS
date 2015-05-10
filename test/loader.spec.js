@@ -1,10 +1,8 @@
-/* jshint globalstrict: true */
 /* global setupModuleLoader: false */
 /* global it, expect, describe, beforeEach: false */
 
-'use strict';
-
 describe('setupModuleLoader', function () {
+    'use strict';
 
     beforeEach(function () {
         delete window.angular;

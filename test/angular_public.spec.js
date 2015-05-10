@@ -1,9 +1,9 @@
-/* jshint globalstrict: true */
-/* global publishExternalAPI, createInjector: false */
-/* global it, expect, describe, beforeEach: false */
-'use strict';
+/* global publishExternalAPI, createInjector */
+/* global jasmine, it, expect, describe, beforeEach */
 
 describe('angularPublic', function () {
+    'use strict';
+
     it('sets up the angular object and the module loader', function () {
         publishExternalAPI();
 

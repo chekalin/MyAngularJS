@@ -1,6 +1,6 @@
 /* jshint maxstatements: false */
-/* global it, expect, describe, beforeEach, afterEach: false */
-/* global publishExternalAPI, createInjector: false */
+/* global publishExternalAPI, createInjector */
+/* global jasmine, it, expect, describe, beforeEach, afterEach */
 
 describe('$q', function () {
     "use strict";

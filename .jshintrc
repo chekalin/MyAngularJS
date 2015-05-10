@@ -36,7 +36,6 @@
   "laxbreak": false,
   "laxcomma": false,
   "loopfunc": true,
-  "maxerr": false,
   "moz": false,
   "multistr": false,
   "notypeof": false,
@@ -50,7 +49,6 @@
   "browser": true,
   "node": true,
   "globals": {
-    "jasmine": false,
     "_": false,
     "angular": false,
     "$": false
