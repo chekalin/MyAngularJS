@@ -1,9 +1,9 @@
-/* jshint globalstrict: true */
+/* jshint maxstatements: false */
 /* global publishExternalAPI, createInjector: false */
 /* global it, expect, describe, beforeEach: false */
-"use strict";
 
 describe("Scope", function () {
+    "use strict";
 
     var scope;
 
@@ -585,9 +585,9 @@ describe("Scope", function () {
                 }
             );
 
-            expect((function () {
+            expect(function () {
                 scope.$digest();
-            })).toThrow();
+            }).toThrow();
 
         });
 
@@ -1119,14 +1119,14 @@ describe("Scope", function () {
         it("keeps record of its children", function () {
             var child1 = parent.$new();
             var child2 = parent.$new();
-            var child2_1 = child2.$new();
+            var child21 = child2.$new();
 
             expect(parent.$$children.length).toBe(2);
             expect(parent.$$children[0]).toBe(child1);
             expect(parent.$$children[1]).toBe(child2);
             expect(child1.$$children.length).toBe(0);
             expect(child2.$$children.length).toBe(1);
-            expect(child2.$$children[0]).toBe(child2_1);
+            expect(child2.$$children[0]).toBe(child21);
         });
 
         it("digests its children", function () {

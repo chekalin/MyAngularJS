@@ -218,10 +218,10 @@ var OPERATORS = {
         return a(self, locals) >= b(self, locals);
     },
     '==': function (self, locals, a, b) {
-        return a(self, locals) == b(self, locals);
+        return a(self, locals) == b(self, locals); // jshint ignore:line
     },
     '!=': function (self, locals, a, b) {
-        return a(self, locals) != b(self, locals);
+        return a(self, locals) != b(self, locals); // jshint ignore:line
     },
     '===': function (self, locals, a, b) {
         return a(self, locals) === b(self, locals);
@@ -247,7 +247,7 @@ Parser.ZERO = _.extend(_.constant(0), {
     sharedGetter: true
 });
 
-_.forEach(CONSTANTS, function (fn, constantName) {
+_.forEach(CONSTANTS, function (fn) {
     fn.constant = fn.literal = fn.sharedGetter = true;
 });
 
@@ -400,6 +400,95 @@ Lexer.prototype.readString = function (quote) {
     throw 'Unmatched quote';
 };
 
+var ensureSafeMemeberName = function (name) {
+    var unsafeNames = [
+        'constructor',
+        '__proto__',
+        '__defineGetter__',
+        '__defineSetter__',
+        '__lookupGetter__',
+        '__lookupSetter__'
+    ];
+
+    if (unsafeNames.indexOf(name) !== -1) {
+        throw 'Referencing "constructor" field in expressions is disallowed';
+    }
+};
+
+var setter = function (object, path, value) {
+    var keys = path.split('.');
+    while (keys.length > 1) {
+        var key = keys.shift();
+        ensureSafeMemeberName(key);
+        if (!object.hasOwnProperty(key)) {
+            object[key] = {};
+        }
+        object = object[key];
+    }
+    object[keys.shift()] = value;
+    return value;
+};
+
+var simpleGetterFn1 = function (key) {
+    ensureSafeMemeberName(key);
+    return function (scope, locals) {
+        if (!scope) {
+            return undefined;
+        }
+        return (locals && locals.hasOwnProperty(key)) ? locals[key] : scope[key];
+    };
+};
+
+var simpleGetterFn2 = function (key1, key2) {
+    ensureSafeMemeberName(key1);
+    ensureSafeMemeberName(key2);
+    return function (scope, locals) {
+        if (!scope) {
+            return undefined;
+        }
+        scope = (locals && locals.hasOwnProperty(key1)) ?
+            locals[key1] :
+            scope[key1];
+        return scope ? scope[key2] : undefined;
+    };
+};
+
+var generatedGetterFunction = function (keys) {
+    var code = '';
+    _.forEach(keys, function (key, idx) {
+        ensureSafeMemeberName(key);
+        code += 'if (!scope) { return undefined; } \n';
+        if (idx === 0) {
+            code += 'scope = (locals && locals.hasOwnProperty("' + key + '")) ?' +
+                'locals["' + key + '"] : ' +
+                'scope["' + key + '"]; \n';
+        } else {
+            code += 'scope = scope["' + key + '"]; \n';
+        }
+    });
+    code += 'return scope;\n';
+    /* jshint -W054 */
+    return new Function('scope', 'locals', code);
+    /* jshint +W054 */
+};
+
+var getterFn = _.memoize(function (ident) {
+    var pathKeys = ident.split(".");
+    var fn;
+    if (pathKeys.length === 1) {
+        fn = simpleGetterFn1(pathKeys[0]);
+    } else if (pathKeys.length === 2) {
+        fn = simpleGetterFn2(pathKeys[0], pathKeys[1]);
+    } else {
+        fn = generatedGetterFunction(pathKeys);
+    }
+
+    fn.sharedGetter = true;
+    fn.assign = function (self, value) {
+        return setter(self, ident, value);
+    };
+    return fn;
+});
 
 Lexer.prototype.readIdent = function () {
     var text = '';
@@ -447,79 +536,6 @@ Lexer.prototype.readIdent = function () {
     }
 };
 
-var getterFn = _.memoize(function (ident) {
-    var pathKeys = ident.split(".");
-    var fn;
-    if (pathKeys.length === 1) {
-        fn = simpleGetterFn1(pathKeys[0]);
-    } else if (pathKeys.length === 2) {
-        fn = simpleGetterFn2(pathKeys[0], pathKeys[1]);
-    } else {
-        fn = generatedGetterFunction(pathKeys);
-    }
-
-    fn.sharedGetter = true;
-    fn.assign = function (self, value) {
-        return setter(self, ident, value);
-    };
-    return fn;
-});
-
-var setter = function (object, path, value) {
-    var keys = path.split('.');
-    while (keys.length > 1) {
-        var key = keys.shift();
-        ensureSafeMemeberName(key);
-        if (!object.hasOwnProperty(key)) {
-            object[key] = {};
-        }
-        object = object[key];
-    }
-    object[keys.shift()] = value;
-    return value;
-};
-
-var simpleGetterFn1 = function (key) {
-    ensureSafeMemeberName(key);
-    return function (scope, locals) {
-        if (!scope) {
-            return undefined;
-        }
-        return (locals && locals.hasOwnProperty(key)) ? locals[key] : scope[key];
-    };
-};
-var simpleGetterFn2 = function (key1, key2) {
-    ensureSafeMemeberName(key1);
-    ensureSafeMemeberName(key2);
-    return function (scope, locals) {
-        if (!scope) {
-            return undefined;
-        }
-        scope = (locals && locals.hasOwnProperty(key1)) ?
-            locals[key1] :
-            scope[key1];
-        return scope ? scope[key2] : undefined;
-    };
-};
-var generatedGetterFunction = function (keys) {
-    var code = '';
-    _.forEach(keys, function (key, idx) {
-        ensureSafeMemeberName(key);
-        code += 'if (!scope) { return undefined; } \n';
-        if (idx === 0) {
-            code += 'scope = (locals && locals.hasOwnProperty("' + key + '")) ?' +
-                'locals["' + key + '"] : ' +
-                'scope["' + key + '"]; \n';
-        } else {
-            code += 'scope = scope["' + key + '"]; \n';
-        }
-    });
-    code += 'return scope;\n';
-    /* jshint -W054 */
-    return new Function('scope', 'locals', code);
-    /* jshint +W054 */
-};
-
 Lexer.prototype.isExpOperator = function (ch) {
     return ch === '-' || ch === '+' || this.isNumber(ch);
 };
@@ -561,7 +577,7 @@ Parser.prototype.primary = function () {
         }
     }
     var next;
-    var context;
+    var context = null;
     while ((next = this.expect('[', '.', '('))) {
         if (next.text === '[') {
             context = primary;
@@ -575,6 +591,32 @@ Parser.prototype.primary = function () {
         }
     }
     return primary;
+};
+
+var ensureSafeObject = function (obj) {
+    if (obj) {
+        if (obj.document && obj.location && obj.alert && obj.setInterval) {
+            throw "referencing window in Angular expressions is disallowed!";
+        } else if (obj.children && (obj.nodeName || (obj.prop && obj.attr && obj.find))) {
+            throw "referencing DOM nodes in Angular expressions is disallowed!";
+        } else if (obj.constructor === obj) {
+            throw "referencing Function in Angular expressions is disallowed!";
+        } else if (obj.getOwnPropertyNames || obj.getOwnPropertyDescriptor) {
+            throw "referencing Object in Angular expressions is disallowed!";
+        }
+    }
+    return obj;
+};
+
+var ensureSafeFunction = function (fun) {
+    if (fun) {
+        if (fun.constructor === fun) {
+            throw "referencing Function in Angular expressions is disallowed!";
+        } else if (fun === APPLY || fun === BIND || fun === CALL) {
+            throw "referencing call, apply or bind in Angular expressions is disallowed!";
+        }
+    }
+    return fun;
 };
 
 Parser.prototype.objectIndex = function (objFn) {
@@ -623,21 +665,6 @@ Parser.prototype.functionCall = function (fnFn, contextFn) {
         });
         return ensureSafeObject(fn.apply(context, args));
     };
-};
-
-var ensureSafeMemeberName = function (name) {
-    var unsafeNames = [
-        'constructor',
-        '__proto__',
-        '__defineGetter__',
-        '__defineSetter__',
-        '__lookupGetter__',
-        '__lookupSetter__'
-    ];
-
-    if (unsafeNames.indexOf(name) != -1) {
-        throw 'Referencing "constructor" field in expressions is disallowed';
-    }
 };
 
 Parser.prototype.expect = function (e1, e2, e3, e4) {
@@ -711,32 +738,6 @@ Parser.prototype.object = function () {
     objectFn.constant = _(keyValues).pluck('value').every('constant');
     objectFn.inputs = _.pluck(keyValues, 'value');
     return objectFn;
-};
-
-var ensureSafeObject = function (obj) {
-    if (obj) {
-        if (obj.document && obj.location && obj.alert && obj.setInterval) {
-            throw "referencing window in Angular expressions is disallowed!";
-        } else if (obj.children && (obj.nodeName || (obj.prop && obj.attr && obj.find))) {
-            throw "referencing DOM nodes in Angular expressions is disallowed!";
-        } else if (obj.constructor === obj) {
-            throw "referencing Function in Angular expressions is disallowed!";
-        } else if (obj.getOwnPropertyNames || obj.getOwnPropertyDescriptor) {
-            throw "referencing Object in Angular expressions is disallowed!";
-        }
-    }
-    return obj;
-};
-
-var ensureSafeFunction = function (fun) {
-    if (fun) {
-        if (fun.constructor === fun) {
-            throw "referencing Function in Angular expressions is disallowed!";
-        } else if (fun === APPLY || fun === BIND || fun === CALL) {
-            throw "referencing call, apply or bind in Angular expressions is disallowed!";
-        }
-    }
-    return fun;
 };
 
 Parser.prototype.assignment = function () {
@@ -865,7 +866,7 @@ Parser.prototype.statements = function () {
         return statements[0];
     } else {
         return function (self, locals) {
-            var value;
+            var value = null;
             _.forEach(statements, function (statement) {
                 value = statement(self, locals);
             });

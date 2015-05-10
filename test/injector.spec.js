@@ -1,9 +1,9 @@
-/* jshint globalstrict: true */
+/* jshint maxstatements: false */
 /* global setupModuleLoader, createInjector, angular: false */
 /* global it, expect, describe, beforeEach: false */
-'use strict';
 
 describe('injector', function () {
+    'use strict';
 
     beforeEach(function () {
         delete window.angular;
@@ -213,7 +213,7 @@ describe('injector', function () {
         it('strips surrounding undescores from argument names when parsing', function () {
             var injector = createInjector([]);
 
-            var fn = function (a, _b_, c_, _d, an_argument) {
+            var fn = function (a, _b_, c_, _d, an_argument) { // jshint ignore:line
             };
 
             expect(injector.annotate(fn)).toEqual(['a', 'b', 'c_', '_d', 'an_argument']);
@@ -913,8 +913,8 @@ describe('injector', function () {
         module.factory('aValue', function () {
             return {aKey: 42};
         });
-        module.config(function($provide) {
-            $provide.decorator('aValue', function($delegate) {
+        module.config(function ($provide) {
+            $provide.decorator('aValue', function ($delegate) {
                 $delegate.decoratedKey = 43;
             });
         });
@@ -925,16 +925,16 @@ describe('injector', function () {
         expect(injector.get('aValue').decoratedKey).toBe(43);
     });
 
-    it('allows multiple decorators per service', function() {
+    it('allows multiple decorators per service', function () {
         var module = angular.module('myModule', []);
         module.factory('aValue', function () {
             return {};
         });
-        module.config(function($provide) {
-            $provide.decorator('aValue', function($delegate) {
+        module.config(function ($provide) {
+            $provide.decorator('aValue', function ($delegate) {
                 $delegate.decoratedKey = 42;
             });
-            $provide.decorator('aValue', function($delegate) {
+            $provide.decorator('aValue', function ($delegate) {
                 $delegate.otherDecoratedKey = 43;
             });
         });
@@ -945,14 +945,14 @@ describe('injector', function () {
         expect(injector.get('aValue').otherDecoratedKey).toBe(43);
     });
 
-    it('uses dependency injection with decorators', function() {
+    it('uses dependency injection with decorators', function () {
         var module = angular.module('myModule', []);
         module.factory('aValue', function () {
             return {};
         });
         module.constant('a', 42);
-        module.config(function($provide) {
-            $provide.decorator('aValue', function(a, $delegate) {
+        module.config(function ($provide) {
+            $provide.decorator('aValue', function (a, $delegate) {
                 $delegate.decoratedKey = a;
             });
         });

@@ -1,5 +1,5 @@
-/* jshint globalstrict: true */
-/* global angular, HashMap: false */
+/* global HashMap */
+
 'use strict';
 
 var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
@@ -104,7 +104,7 @@ function createInjector(modulesToLoad, strictDi) {
                     return (cache[name] = factoryFn(name));
                 } finally {
                     path.shift();
-                    if (cache[name] == INSTANTIATING) {
+                    if (cache[name] == INSTANTIATING) { // jshint ignore:line
                         delete cache[name];
                     }
                 }

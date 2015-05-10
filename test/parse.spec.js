@@ -1,9 +1,9 @@
-/* jshint globalstrict: true */
+/* jshint maxstatements: false */
 /* global publishExternalAPI, createInjector: false */
 /* global it, expect, describe, beforeEach: false */
-"use strict";
 
 describe("parse", function () {
+    "use strict";
 
     var parse;
 

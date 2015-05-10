@@ -1,4 +1,4 @@
-module.exports = function(grunt) {
+module.exports = function (grunt) {
 
     grunt.initConfig({
         clean: {
@@ -7,6 +7,7 @@ module.exports = function(grunt) {
         jshint: {
             all: ['src/**/*.js', 'test/**/*.js'],
             options: {
+                jshintrc: true,
                 globals: {
                     _: false,
                     $: false,

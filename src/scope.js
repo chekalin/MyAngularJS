@@ -56,7 +56,7 @@ function $RootScopeProvider() {
         ;
 
         Scope.prototype.$$digestOnce = function () {
-            var dirty;
+            var dirty = null;
             var continueLoop = true;
             var self = this;
             this.$$everyScope(function (scope) {
@@ -301,7 +301,7 @@ function $RootScopeProvider() {
             watchFn = $parse(watchFn);
 
             var internalWatchFn = function (scope) {
-                var newLength, key;
+                var newLength;
                 newValue = watchFn(scope);
                 if (_.isObject(newValue)) {
                     if (_.isArrayLike(newValue)) {
@@ -309,7 +309,7 @@ function $RootScopeProvider() {
                             changeCount++;
                             oldValue = [];
                         }
-                        if (newValue.length != oldValue.length) {
+                        if (newValue.length !== oldValue.length) {
                             changeCount++;
                             oldValue.length = newValue.length;
                         }
@@ -377,7 +377,6 @@ function $RootScopeProvider() {
         };
 
         Scope.prototype.$on = function (eventName, listenerFn) {
-            var self = this;
             var listeners = this.$$listeners[eventName];
             if (!listeners) {
                 this.$$listeners[eventName] = listeners = [];

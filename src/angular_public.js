@@ -1,3 +1,4 @@
+/* global setupModuleLoader, $ParseProvider, $RootScopeProvider, $QProvider, $$QProvider */
 function publishExternalAPI() {
     'use strict';
 

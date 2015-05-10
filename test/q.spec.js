@@ -1,7 +1,10 @@
+/* jshint maxstatements: false */
 /* global it, expect, describe, beforeEach, afterEach: false */
 /* global publishExternalAPI, createInjector: false */
 
 describe('$q', function () {
+    "use strict";
+
     var $q, $$q, $rootScope;
 
     beforeEach(function () {
@@ -419,7 +422,7 @@ describe('$q', function () {
         var d = $q.defer();
 
         var rejectedSpy = jasmine.createSpy();
-        d.promise.then(function (result) {
+        d.promise.then(function () {
             throw 'fail';
         }).finally(function (result) {
             return result * 2;
@@ -434,11 +437,11 @@ describe('$q', function () {
     it('resolves to original value when nested promise resolves', function () {
         var d = $q.defer();
         var fulfilledSpy = jasmine.createSpy();
-        var resolveNested;
+        var resolveNested = null;
 
         d.promise.then(function (result) {
             return result + 1;
-        }).finally(function (result) {
+        }).finally(function () {
             var d2 = $q.defer();
             resolveNested = function () {
                 d2.resolve('abc');
@@ -459,11 +462,11 @@ describe('$q', function () {
     it('rejects to original value when nested promise resolves', function () {
         var d = $q.defer();
         var rejectSpy = jasmine.createSpy();
-        var resolveNested;
+        var resolveNested = null;
 
-        d.promise.then(function (result) {
+        d.promise.then(function () {
             throw 'fail';
-        }).finally(function (result) {
+        }).finally(function () {
             var d2 = $q.defer();
             resolveNested = function () {
                 d2.resolve('abc');
@@ -484,11 +487,11 @@ describe('$q', function () {
         var d = $q.defer();
         var fulfilledSpy = jasmine.createSpy();
         var rejectSpy = jasmine.createSpy();
-        var resolveNested;
+        var resolveNested = null;
 
         d.promise.then(function (result) {
             return result + 1;
-        }).finally(function (result) {
+        }).finally(function () {
             var d2 = $q.defer();
             resolveNested = function () {
                 d2.reject('fail');
