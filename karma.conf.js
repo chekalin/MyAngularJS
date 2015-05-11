@@ -9,6 +9,7 @@ module.exports = function (config) {
 
         files: [
             'node_modules/lodash/index.js',
+            'node_modules/sinon/pkg/sinon.js',
             'src/**/*.js',
             'test/**/*.spec.js'
         ],
@@ -24,9 +25,9 @@ module.exports = function (config) {
         coverageReporter: {
             dir: 'build/reports/coverage',
             reporters: [
-                { type: 'text-summary'},
-                { type: 'html', subdir: 'report-html' },
-                { type: 'lcovonly', subdir: '.'}
+                {type: 'text-summary'},
+                {type: 'html', subdir: 'report-html'},
+                {type: 'lcovonly', subdir: '.'}
             ]
         },
 

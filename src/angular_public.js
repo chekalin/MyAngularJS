@@ -1,4 +1,5 @@
 /* global setupModuleLoader, $ParseProvider, $RootScopeProvider, $QProvider, $$QProvider */
+/* global $HttpBackendProvider, $HttpProvider */
 function publishExternalAPI() {
     'use strict';
 
@@ -9,4 +10,6 @@ function publishExternalAPI() {
     ngModule.provider('$rootScope', $RootScopeProvider);
     ngModule.provider('$q', $QProvider);
     ngModule.provider('$$q', $$QProvider);
+    ngModule.provider('$httpBackend', $HttpBackendProvider);
+    ngModule.provider('$http', $HttpProvider);
 }
