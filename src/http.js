@@ -6,8 +6,13 @@ function $HttpProvider() {
             return function $http(config) {
                 var deferred = $q.defer();
 
+                function isSuccess(status) {
+                    return status >= 200 && status < 300;
+                }
+
                 function done(status, response, statusText) {
-                    deferred.resolve({
+                    status = Math.max(status, 0);
+                    deferred[isSuccess(status) ? 'resolve' : 'reject']({
                         status: status,
                         data: response,
                         statusText: statusText,
