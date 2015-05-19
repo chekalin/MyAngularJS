@@ -136,4 +136,57 @@ describe('$http', function () {
         expect(requests.length).toBe(1);
         expect(requests[0].requestHeaders.Accept).toBe('application/json, text/plain, */*');
     });
+
+    it('sets method-specific default headers on request', function () {
+        $http({
+            method: 'POST',
+            url: 'http://teropa.info',
+            data: 42
+        });
+        expect(requests.length).toBe(1);
+        expect(requests[0].requestHeaders['Content-Type'])
+            .toBe('application/json;charset=utf-8');
+    });
+
+    it('exposes default headers for overriding', function () {
+        $http.defaults.headers.post['Content-Type'] = 'text/plain;charset=utf-8';
+        $http({
+            method: 'POST',
+            url: 'http://teropa.info',
+            data: '42'
+        });
+        expect(requests.length).toBe(1);
+        expect(requests[0].requestHeaders['Content-Type'])
+            .toBe('text/plain;charset=utf-8');
+    });
+
+    it('exposes default headers through provider', function () {
+        var injector = createInjector(['ng', function ($httpProvider) {
+            $httpProvider.defaults.headers.post['Content-Type'] =
+                'text/plain;charset=utf-8';
+        }]);
+        $http = injector.get('$http');
+        $http({
+            method: 'POST',
+            url: 'http://teropa.info',
+            data: '42'
+        });
+        expect(requests.length).toBe(1);
+        expect(requests[0].requestHeaders['Content-Type'])
+            .toBe('text/plain;charset=utf-8');
+    });
+
+    it('merges default headers case-insensitively', function () {
+        $http({
+            method: 'POST',
+            url: 'http://teropa.info',
+            data: 42,
+            headers: {
+                'content-type': 'text/plain;charset=utf-8'
+            }
+        });
+        expect(requests.length).toBe(1);
+        expect(requests[0].requestHeaders['content-type']).toBe('text/plain;charset=utf-8');
+        expect(requests[0].requestHeaders['Content-Type']).toBeUndefined();
+    });
 });
