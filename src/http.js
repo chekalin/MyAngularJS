@@ -18,6 +18,19 @@ function $HttpProvider() {
         }
     };
 
+    function executeHeaderFns(headers, config) {
+        return _.transform(headers, function (result, v, k) {
+            if (_.isFunction(v)) {
+                v = v(config);
+                if (_.isNull(v) || _.isUndefined(v)) {
+                    delete result[k];
+                } else {
+                    result[k] = v;
+                }
+            }
+        }, headers);
+    }
+
     function mergeHeaders(config) {
         var reqHeaders = _.extend(
             {},
@@ -36,7 +49,7 @@ function $HttpProvider() {
                 reqHeaders[key] = value;
             }
         });
-        return reqHeaders;
+        return executeHeaderFns(reqHeaders, config);
     }
 
     this.$get = ['$httpBackend', '$q', '$rootScope',
@@ -47,6 +60,14 @@ function $HttpProvider() {
                     method: 'GET'
                 }, requestConfig);
                 config.headers = mergeHeaders(requestConfig);
+
+                if (_.isUndefined(config.data)) {
+                    _.forEach(config.headers, function (v, k) {
+                        if (k.toLowerCase() === 'content-type') {
+                            delete config.headers[k];
+                        }
+                    });
+                }
 
                 function isSuccess(status) {
                     return status >= 200 && status < 300;
