@@ -73,13 +73,38 @@ function $HttpProvider() {
                     return status >= 200 && status < 300;
                 }
 
-                function done(status, response, statusText) {
+                function parseHeaders(headers) {
+                    var lines = headers.split('\n');
+                    return _.transform(lines, function (result, line) {
+                        var separatorAt = line.indexOf(':');
+                        var name = _.trim(line.substr(0, separatorAt)).toLowerCase();
+                        var value = _.trim(line.substr(separatorAt + 1)).toLowerCase();
+                        if (name) {
+                            result[name] = value;
+                        }
+                    }, {});
+                }
+
+                function headerGetter(headers) {
+                    var headersObj;
+                    return function (name) {
+                        headersObj = headersObj || parseHeaders(headers);
+                        if (name) {
+                            return headersObj[name.toLowerCase()];
+                        } else {
+                            return headersObj;
+                        }
+                    };
+                }
+
+                function done(status, response, headersString, statusText) {
                     status = Math.max(status, 0);
                     deferred[isSuccess(status) ? 'resolve' : 'reject']({
                         status: status,
                         data: response,
                         statusText: statusText,
-                        config: config
+                        config: config,
+                        headers: headerGetter(headersString)
                     });
                     if (!$rootScope.$$phase) {
                         $rootScope.$apply();
