@@ -57,7 +57,8 @@ function $HttpProvider() {
             function $http(requestConfig) {
                 var deferred = $q.defer();
                 var config = _.extend({
-                    method: 'GET'
+                    method: 'GET',
+                    transformRequest: defaults.transformRequest
                 }, requestConfig);
                 config.headers = mergeHeaders(requestConfig);
 
@@ -65,31 +66,36 @@ function $HttpProvider() {
                     config.withCredentials = defaults.withCredentials;
                 }
 
-                if (_.isUndefined(config.data)) {
-                    _.forEach(config.headers, function (v, k) {
-                        if (k.toLowerCase() === 'content-type') {
-                            delete config.headers[k];
-                        }
-                    });
-                }
-
-                function isSuccess(status) {
-                    return status >= 200 && status < 300;
+                function transformData(data, headers, transformFn) {
+                    if (_.isFunction(transformFn)) {
+                        return transformFn(data, headers);
+                    } else {
+                        return _.reduce(transformFn, function (data, fn) {
+                            return fn(data, headers);
+                        }, data);
+                    }
                 }
 
                 function parseHeaders(headers) {
-                    var lines = headers.split('\n');
-                    return _.transform(lines, function (result, line) {
-                        var separatorAt = line.indexOf(':');
-                        var name = _.trim(line.substr(0, separatorAt)).toLowerCase();
-                        var value = _.trim(line.substr(separatorAt + 1)).toLowerCase();
-                        if (name) {
-                            result[name] = value;
-                        }
-                    }, {});
+                    if (_.isObject(headers)) {
+                        return _.transform(headers, function (result, v, k) {
+                            result[_.trim(k.toLowerCase())] = _.trim(v);
+                        }, {});
+                    } else {
+                        var lines = headers.split('\n');
+                        return _.transform(lines, function (result, line) {
+                            var separatorAt = line.indexOf(':');
+                            var name = _.trim(line.substr(0, separatorAt)).toLowerCase();
+                            var value = _.trim(line.substr(separatorAt + 1)).toLowerCase();
+                            if (name) {
+                                result[name] = value;
+                            }
+                        }, {});
+                    }
+
                 }
 
-                function headerGetter(headers) {
+                function headersGetter(headers) {
                     var headersObj;
                     return function (name) {
                         headersObj = headersObj || parseHeaders(headers);
@@ -101,6 +107,24 @@ function $HttpProvider() {
                     };
                 }
 
+                var reqData = transformData(
+                    config.data,
+                    headersGetter(config.headers),
+                    config.transformRequest
+                );
+
+                if (_.isUndefined(reqData)) {
+                    _.forEach(config.headers, function (v, k) {
+                        if (k.toLowerCase() === 'content-type') {
+                            delete config.headers[k];
+                        }
+                    });
+                }
+
+                function isSuccess(status) {
+                    return status >= 200 && status < 300;
+                }
+
                 function done(status, response, headersString, statusText) {
                     status = Math.max(status, 0);
                     deferred[isSuccess(status) ? 'resolve' : 'reject']({
@@ -108,7 +132,7 @@ function $HttpProvider() {
                         data: response,
                         statusText: statusText,
                         config: config,
-                        headers: headerGetter(headersString)
+                        headers: headersGetter(headersString)
                     });
                     if (!$rootScope.$$phase) {
                         $rootScope.$apply();
@@ -118,7 +142,7 @@ function $HttpProvider() {
                 $httpBackend(
                     config.method,
                     config.url,
-                    config.data,
+                    reqData,
                     done,
                     config.headers,
                     config.withCredentials
