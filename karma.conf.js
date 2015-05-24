@@ -2,6 +2,8 @@
 // Generated on Fri Mar 13 2015 21:34:20 GMT+0000 (GMT)
 
 module.exports = function (config) {
+    'use strict';
+
     config.set({
         basePath: '',
 
