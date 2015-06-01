@@ -1,6 +1,12 @@
 function $CompileProvider($provide) {
     'use strict';
 
+    var PREFIX_REGEXP = /(x[:\-_]|data[:\-_])/i;
+
+    function directiveNormalize(name) {
+        return _.camelCase(name.replace(PREFIX_REGEXP, ''));
+    }
+
     var hasDirectives = {};
 
     this.directive = function (name, directiveFactory) {
@@ -36,7 +42,7 @@ function $CompileProvider($provide) {
 
         function collectDirectives(node) {
             var directives = [];
-            var normalizedNodeName = _.camelCase(nodeName(node).toLowerCase());
+            var normalizedNodeName = directiveNormalize(nodeName(node).toLowerCase());
             addDirective(directives, normalizedNodeName);
             return directives;
         }
@@ -54,6 +60,9 @@ function $CompileProvider($provide) {
             _.forEach($compileNodes, function (node) {
                 var directives = collectDirectives(node);
                 applyDirectivesToNode(directives, node);
+                if (node.childNodes && node.childNodes.length) {
+                    compileNodes(node.childNodes);
+                }
             });
         }
 

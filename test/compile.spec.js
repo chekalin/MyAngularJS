@@ -90,4 +90,61 @@ describe('$compile', function () {
             expect(el.eq(1).data('hasCompiled')).toBe(2);
         });
     });
+
+    it('compiles element directives from child elements', function () {
+        var idx = 1;
+        var injector = makeInjectorWithDirectives('myDirective', function () {
+            return {
+                compile: function (element) {
+                    element.data('hasCompiled', idx++);
+                }
+            };
+        });
+        injector.invoke(function ($compile) {
+            var el = $('<div><my-directive></my-directive></div>');
+            $compile(el);
+            expect(el.data('hasCompiled')).toBeUndefined();
+            expect(el.find('> my-directive').data('hasCompiled')).toBe(1);
+        });
+    });
+
+    it('compiles nested directives', function () {
+        var idx = 1;
+        var injector = makeInjectorWithDirectives('myDir', function () {
+            return {
+                compile: function (element) {
+                    element.data('hasCompiled', idx++);
+                }
+            };
+        });
+        injector.invoke(function ($compile) {
+            var el = $('<my-dir><my-dir><my-dir/></my-dir></my-dir>');
+            $compile(el);
+            expect(el.data('hasCompiled')).toBe(1);
+            expect(el.find('> my-dir').data('hasCompiled')).toBe(2);
+            expect(el.find('> my-dir > my-dir').data('hasCompiled')).toBe(3);
+        });
+    });
+
+    _.forEach(['x', 'data'], function (prefix) {
+        _.forEach([':', '-', '_'], function (delim) {
+
+            it('compiles element directives with ' + prefix + delim + ' prefix', function () {
+                var injector = makeInjectorWithDirectives('myDir', function () {
+                    return {
+                        compile: function (element) {
+                            element.data('hasCompiled', true);
+                        }
+                    };
+                });
+                injector.invoke(function ($compile) {
+                    var el = $('<' + prefix + delim + 'my-dir></' + prefix + delim + 'my-dir>');
+                    $compile(el);
+                    expect(el.data('hasCompiled')).toBe(true);
+                });
+
+            });
+
+        });
+    });
 });
