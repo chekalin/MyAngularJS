@@ -51,8 +51,11 @@ function $CompileProvider($provide) {
                         normalizedAttr[6].toLowerCase() +
                         normalizedAttr.substring(7);
                 }
-
                 addDirective(directives, normalizedAttr);
+            });
+            _.forEach(node.classList, function (cls) {
+                var normalizedClassName = directiveNormalize(cls);
+                addDirective(directives, normalizedClassName);
             });
             return directives;
         }
