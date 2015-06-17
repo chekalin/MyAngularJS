@@ -64,7 +64,7 @@ function $CompileProvider($provide) {
             return false;
         }
 
-        function collectDirectives(node) {
+        function collectDirectives(node, attrs) {
             var directives = [];
             if (node.nodeType === Node.ELEMENT_NODE) {
                 var normalizedNodeName = directiveNormalize(nodeName(node).toLowerCase());
@@ -89,6 +89,7 @@ function $CompileProvider($provide) {
                     }
                     normalizedAttr = directiveNormalize(name.toLowerCase());
                     addDirective(directives, normalizedAttr, 'A', attrStartName, attrEndName);
+                    attrs[normalizedAttr] = attr.value.trim();
                 });
                 _.forEach(node.classList, function (cls) {
                     var normalizedClassName = directiveNormalize(cls);
@@ -124,23 +125,24 @@ function $CompileProvider($provide) {
             return $(nodes);
         }
 
-        function applyDirectivesToNode(directives, compileNode) {
+        function applyDirectivesToNode(directives, compileNode, attrs) {
             var $compileNode = $(compileNode);
             _.forEach(directives, function (directive) {
                 if (directive.$$start) {
                     $compileNode = groupScan(compileNode, directive.$$start, directive.$$end);
                 }
                 if (directive.compile) {
-                    directive.compile($compileNode);
+                    directive.compile($compileNode, attrs);
                 }
             });
         }
 
         function compileNodes($compileNodes) {
             _.forEach($compileNodes, function (node) {
-                var directives = collectDirectives(node);
-                applyDirectivesToNode(directives, node);
-                if (node.childNodes && node.childNodes.length) {
+                var attrs = {};
+                var directives = collectDirectives(node, attrs);
+                var terminal = applyDirectivesToNode(directives, node, attrs);
+                if (!terminal && node.childNodes && node.childNodes.length) {
                     compileNodes(node.childNodes);
                 }
             });
