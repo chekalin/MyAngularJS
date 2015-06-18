@@ -3,6 +3,26 @@ function $CompileProvider($provide) {
 
     var PREFIX_REGEXP = /(x[:\-_]|data[:\-_])/i;
 
+    var BOOLEAN_ATTRS = {
+        multiple: true,
+        selected: true,
+        checked: true,
+        disabled: true,
+        readOnly: true,
+        required: true,
+        open: true
+    };
+
+    var BOOLEAN_ELEMENTS = {
+        INPUT: true,
+        SELECT: true,
+        OPTION: true,
+        TEXTAREA: true,
+        BUTTON: true,
+        FORM: true,
+        DETAILS: true
+    };
+
     function directiveNormalize(name) {
         return _.camelCase(name.replace(PREFIX_REGEXP, ''));
     }
@@ -64,6 +84,10 @@ function $CompileProvider($provide) {
             return false;
         }
 
+        function isBooleanAttribute(node, attrName) {
+            return BOOLEAN_ATTRS[attrName] && BOOLEAN_ELEMENTS[node.nodeName];
+        }
+
         function collectDirectives(node, attrs) {
             var directives = [];
             if (node.nodeType === Node.ELEMENT_NODE) {
@@ -90,6 +114,9 @@ function $CompileProvider($provide) {
                     normalizedAttr = directiveNormalize(name.toLowerCase());
                     addDirective(directives, normalizedAttr, 'A', attrStartName, attrEndName);
                     attrs[normalizedAttr] = attr.value.trim();
+                    if (isBooleanAttribute(node, normalizedAttr)) {
+                        attrs[normalizedAttr] = true;
+                    }
                 });
                 _.forEach(node.classList, function (cls) {
                     var normalizedClassName = directiveNormalize(cls);
