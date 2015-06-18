@@ -97,7 +97,8 @@ function $CompileProvider($provide) {
                     var attrStartName, attrEndName;
                     var name = attr.name;
                     var normalizedAttr = directiveNormalize(name.toLowerCase());
-                    if (/^ngAttr[A-Z]/.test(normalizedAttr)) {
+                    var isNgAttr = /^ngAttr[A-Z]/.test(normalizedAttr);
+                    if (isNgAttr) {
                         name = _.kebabCase(
                             normalizedAttr[6].toLowerCase() +
                             normalizedAttr.substring(7)
@@ -113,9 +114,11 @@ function $CompileProvider($provide) {
                     }
                     normalizedAttr = directiveNormalize(name.toLowerCase());
                     addDirective(directives, normalizedAttr, 'A', attrStartName, attrEndName);
-                    attrs[normalizedAttr] = attr.value.trim();
-                    if (isBooleanAttribute(node, normalizedAttr)) {
-                        attrs[normalizedAttr] = true;
+                    if (isNgAttr || !attrs.hasOwnProperty(normalizedAttr)) {
+                        attrs[normalizedAttr] = attr.value.trim();
+                        if (isBooleanAttribute(node, normalizedAttr)) {
+                            attrs[normalizedAttr] = true;
+                        }
                     }
                 });
                 _.forEach(node.classList, function (cls) {

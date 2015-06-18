@@ -497,7 +497,7 @@ describe('$compile', function () {
         it('sets the value of boolean attributes to true', function () {
             registerAndCompile(
                 'myDirective',
-                '<input my-directive disabled></input>',
+                '<input my-directive disabled>',
                 function (el, attrs) {
                     expect(attrs.disabled).toBe(true);
                 }
@@ -507,9 +507,19 @@ describe('$compile', function () {
         it('does not set the value of custom boolean attrbute to true', function () {
             registerAndCompile(
                 'myDirective',
-                '<input my-directive whatever></input>',
+                '<input my-directive whatever>',
                 function (el, attrs) {
                     expect(attrs.whatever).toBe('');
+                }
+            );
+        });
+
+        it('overrides attributes with ng-attr- version', function () {
+            registerAndCompile(
+                'myDirective',
+                '<input my-directive ng-attr-whatever="42" whatever>',
+                function (element, attrs) {
+                    expect(attrs.whatever).toBe('42');
                 }
             );
         });
