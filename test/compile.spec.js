@@ -523,6 +523,39 @@ describe('$compile', function () {
                 }
             );
         });
+
+        it('allows setting attributes', function () {
+            registerAndCompile(
+                'myDirective',
+                '<my-directive attr="true"></my-directive>',
+                function (element, attrs) {
+                    attrs.$set('attr', 'false');
+                    expect(attrs.attr).toBe('false');
+                }
+            );
+        });
+
+        it('sets attribute to DOM', function () {
+            registerAndCompile(
+                'myDirective',
+                '<my-directive attr="true"></my-directive>',
+                function (element, attrs) {
+                    attrs.$set('attr', 'false');
+                    expect(element.attr('attr')).toBe('false');
+                }
+            );
+        });
+
+        it('does not set attribute to DOM when flag is false', function () {
+            registerAndCompile(
+                'myDirective',
+                '<my-directive attr="true"></my-directive>',
+                function (element, attrs) {
+                    attrs.$set('attr', 'false', false);
+                    expect(element.attr('attr')).toBe('true');
+                }
+            );
+        });
     });
 
 });
