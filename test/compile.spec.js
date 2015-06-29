@@ -438,6 +438,113 @@ describe('$compile', function () {
         });
     });
 
+    it('applies in priority order', function () {
+        var compilations = [];
+        var injector = makeInjectorWithDirectives({
+            lowerDirective: function () {
+                return {
+                    priority: 1,
+                    compile: function () {
+                        compilations.push('lower');
+                    }
+                };
+            },
+            higherDirective: function () {
+                return {
+                    priority: 2,
+                    compile: function () {
+                        compilations.push('higher');
+                    }
+                };
+            }
+        });
+        injector.invoke(function ($compile) {
+            var el = $('<div lower-directive higher-directive></div>>');
+            $compile(el);
+            expect(compilations).toEqual(['higher', 'lower']);
+        });
+    });
+
+    it('applies in alphabetic order when priorities are the ame', function () {
+        var compilations = [];
+        var injector = makeInjectorWithDirectives({
+            firstDirective: function () {
+                return {
+                    priority: 1,
+                    compile: function () {
+                        compilations.push('first');
+                    }
+                };
+            },
+            secondDirective: function () {
+                return {
+                    priority: 1,
+                    compile: function () {
+                        compilations.push('second');
+                    }
+                };
+            }
+        });
+        injector.invoke(function ($compile) {
+            var el = $('<div second-directive first-directive></div>>');
+            $compile(el);
+            expect(compilations).toEqual(['first', 'second']);
+        });
+    });
+
+    it('applies in registration order when names are the same', function () {
+        var compilations = [];
+        var myModule = window.angular.module('myModule', []);
+        myModule.directive('aDirective', function () {
+            return {
+                priority: 1,
+                compile: function () {
+                    compilations.push('first');
+                }
+            };
+        });
+        myModule.directive('aDirective', function () {
+            return {
+                priority: 1,
+                compile: function () {
+                    compilations.push('second');
+                }
+            };
+        });
+        var injector = createInjector(['ng', 'myModule']);
+        injector.invoke(function ($compile) {
+            var el = $('<div a-directive></div>>');
+            $compile(el);
+            expect(compilations).toEqual(['first', 'second']);
+        });
+    });
+
+    it('uses default priority when one not given', function () {
+        var compilations = [];
+        var myModule = window.angular.module('myModule', []);
+        myModule.directive('firstDirective', function () {
+            return {
+                priority: 1,
+                compile: function () {
+                    compilations.push('first');
+                }
+            };
+        });
+        myModule.directive('secondDirective', function () {
+            return {
+                compile: function () {
+                    compilations.push('second');
+                }
+            };
+        });
+        var injector = createInjector(['ng', 'myModule']);
+        injector.invoke(function ($compile) {
+            var el = $('<div second-directive first-directive></div>>');
+            $compile(el);
+            expect(compilations).toEqual(['first', 'second']);
+        });
+    });
+
     it('allows applying directive to multiple elements', function () {
         var compileEl = false;
         var injector = makeInjectorWithDirectives('myDir', function () {
