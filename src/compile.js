@@ -190,14 +190,24 @@ function $CompileProvider($provide) {
 
         function applyDirectivesToNode(directives, compileNode, attrs) {
             var $compileNode = $(compileNode);
+            var terminalPriority = -Number.MAX_VALUE;
+            var terminal = false;
             _.forEach(directives, function (directive) {
+                if (directive.priority < terminalPriority) {
+                    return false;
+                }
                 if (directive.$$start) {
                     $compileNode = groupScan(compileNode, directive.$$start, directive.$$end);
                 }
                 if (directive.compile) {
                     directive.compile($compileNode, attrs);
                 }
+                if (directive.terminal) {
+                    terminal = true;
+                    terminalPriority = directive.priority;
+                }
             });
+            return terminal;
         }
 
         function compileNodes($compileNodes) {

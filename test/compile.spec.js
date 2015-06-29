@@ -545,6 +545,88 @@ describe('$compile', function () {
         });
     });
 
+    it('stops compiling at a terminal directive', function () {
+        var compilations = [];
+        var injector = makeInjectorWithDirectives({
+            firstDirective: function () {
+                return {
+                    priority: 1,
+                    terminal: true,
+                    compile: function () {
+                        compilations.push('first');
+                    }
+                };
+            },
+            secondDirective: function () {
+                return {
+                    priority: 0,
+                    compile: function () {
+                        compilations.push('second');
+                    }
+                };
+            }
+        });
+        injector.invoke(function ($compile) {
+            var el = $('<div first-directive second-directive></div>>');
+            $compile(el);
+            expect(compilations).toEqual(['first']);
+        });
+    });
+
+    it('still compiles directives with same priority after terminal', function () {
+        var compilations = [];
+        var injector = makeInjectorWithDirectives({
+            firstDirective: function () {
+                return {
+                    priority: 1,
+                    terminal: true,
+                    compile: function () {
+                        compilations.push('first');
+                    }
+                };
+            },
+            secondDirective: function () {
+                return {
+                    priority: 1,
+                    compile: function () {
+                        compilations.push('second');
+                    }
+                };
+            }
+        });
+        injector.invoke(function ($compile) {
+            var el = $('<div first-directive second-directive></div>>');
+            $compile(el);
+            expect(compilations).toEqual(['first', 'second']);
+        });
+    });
+
+    it('stops child compilation after terminal directive', function () {
+        var compilations = [];
+        var injector = makeInjectorWithDirectives({
+            parentDirective: function () {
+                return {
+                    terminal: true,
+                    compile: function () {
+                        compilations.push('parent');
+                    }
+                };
+            },
+            childDirective: function () {
+                return {
+                    compile: function () {
+                        compilations.push('child');
+                    }
+                };
+            }
+        });
+        injector.invoke(function ($compile) {
+            var el = $('<div parent-directive><div child-directive></div> </div>>');
+            $compile(el);
+            expect(compilations).toEqual(['parent']);
+        });
+    });
+
     it('allows applying directive to multiple elements', function () {
         var compileEl = false;
         var injector = makeInjectorWithDirectives('myDir', function () {
