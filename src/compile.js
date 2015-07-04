@@ -111,6 +111,25 @@ function $CompileProvider($provide) {
             };
         };
 
+        Attributes.prototype.$addClass = function (className) {
+            this.$$element.addClass(className);
+        };
+        Attributes.prototype.$removeClass = function (className) {
+            this.$$element.removeClass(className);
+        };
+        Attributes.prototype.$updateClass = function (newClassVal, oldClassVal) {
+            var newClasses = newClassVal.split(/\s+/);
+            var oldClasses = oldClassVal.split(/\s+/);
+            var addedClasses = _.difference(newClasses, oldClasses);
+            var removedClasses = _.difference(oldClasses, newClasses);
+            if (addedClasses.length) {
+                this.$addClass(addedClasses.join(' '));
+            }
+            if (removedClasses.length) {
+                this.$removeClass(removedClasses.join(' '));
+            }
+        };
+
         function nodeName(element) {
             return element.nodeName ? element.nodeName : element[0].nodeName;
         }
