@@ -656,10 +656,10 @@ describe('$compile', function () {
                     }
                 };
             });
-            injector.invoke(function ($compile) {
+            injector.invoke(function ($compile, $rootScope) {
                 var el = $(domString);
                 $compile(el);
-                callback(el, givenAttrs);
+                callback(el, givenAttrs, $rootScope);
             });
         }
 
@@ -846,6 +846,60 @@ describe('$compile', function () {
                     attrs.$set('someAttribute', 44);
                     expect(element.attr('some-attribute')).toBe('44');
                     expect(element.attr('x-some-attribute')).toBe('42');
+                }
+            );
+        });
+
+        it('calls observer immediately when attribute is $set', function () {
+            registerAndCompile(
+                'myDirective',
+                '<my-directive some-attribute="42"></my-directive>',
+                function (element, attrs) {
+                    var gotValue;
+                    attrs.$observe('someAttribute', function (value) {
+                        gotValue = value;
+                    });
+
+                    attrs.$set('someAttribute', '43');
+
+                    expect(gotValue).toEqual('43');
+                }
+            );
+        });
+
+        it('calls observer on the next digest after registration', function () {
+            registerAndCompile(
+                'myDirective',
+                '<my-directive some-attribute="42"></my-directive>',
+                function (element, attrs, $rootScope) {
+                    var gotValue;
+                    attrs.$observe('someAttribute', function (value) {
+                        gotValue = value;
+                    });
+
+                    $rootScope.$digest();
+
+                    expect(gotValue).toEqual('42');
+                }
+            );
+        });
+
+        it('lets observers be deregistered', function () {
+            registerAndCompile(
+                'myDirective',
+                '<my-directive some-attribute="42"></my-directive>',
+                function (element, attrs, $rootScope) {
+                    var gotValue;
+                    var remove = attrs.$observe('someAttribute', function (value) {
+                        gotValue = value;
+                    });
+                    attrs.$set('someAttribute', '43');
+                    expect(gotValue).toEqual('43');
+
+                    remove();
+
+                    attrs.$set('someAttribute', '44');
+                    expect(gotValue).toEqual('43');
                 }
             );
         });
