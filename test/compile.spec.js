@@ -888,7 +888,7 @@ describe('$compile', function () {
             registerAndCompile(
                 'myDirective',
                 '<my-directive some-attribute="42"></my-directive>',
-                function (element, attrs, $rootScope) {
+                function (element, attrs) {
                     var gotValue;
                     var remove = attrs.$observe('someAttribute', function (value) {
                         gotValue = value;
