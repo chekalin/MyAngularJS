@@ -1095,6 +1095,24 @@ describe('$compile', function () {
                 expect(givenElements[0][0]).toBe(el[0].firstChild);
             });
         });
+
+        it('support link function objects', function () {
+            var linked;
+            var injector = makeInjectorWithDirectives('myDirective', function () {
+                return {
+                    link: {
+                        post: function (scope, element, attrs) {
+                            linked = true;
+                        }
+                    }
+                };
+            });
+            injector.invoke(function ($compile, $rootScope) {
+                var el = $('<div><div my-directive></div></div>');
+                $compile(el)($rootScope);
+                expect(linked).toBe(true);
+            });
+        });
     });
 
 });

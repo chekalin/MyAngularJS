@@ -278,8 +278,10 @@ function $CompileProvider($provide) {
                 }
                 if (directive.compile) {
                     var linkFn = directive.compile($compileNode, attrs);
-                    if (linkFn) {
+                    if (_.isFunction(linkFn)) {
                         linkFns.push(linkFn);
+                    } else if (linkFn) {
+                        linkFns.push(linkFn.post);
                     }
                 }
                 if (directive.terminal) {
