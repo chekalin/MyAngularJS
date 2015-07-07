@@ -1113,6 +1113,68 @@ describe('$compile', function () {
                 expect(linked).toBe(true);
             });
         });
+
+        it('supports prelinking and postlinking', function () {
+            var linkings = [];
+            var injector = makeInjectorWithDirectives('myDirective', function () {
+                return {
+                    link: {
+                        pre: function (scope, element) {
+                            linkings.push(['pre', element[0]]);
+                        },
+                        post: function (scope, element) {
+                            linkings.push(['post', element[0]]);
+                        }
+                    }
+                };
+            });
+            injector.invoke(function ($compile, $rootScope) {
+                var el = $('<div my-directive><div my-directive></div></div>');
+                $compile(el)($rootScope);
+                expect(linkings.length).toBe(4);
+                expect(linkings[0]).toEqual(['pre', el[0]]);
+                expect(linkings[1]).toEqual(['pre', el[0].firstChild]);
+                expect(linkings[2]).toEqual(['post', el[0].firstChild]);
+                expect(linkings[3]).toEqual(['post', el[0]]);
+            });
+        });
+
+        it('reverses priority for post link functions', function () {
+            var linkings = [];
+            var injector = makeInjectorWithDirectives({
+                firstDirective: function () {
+                    return {
+                        priority: 2,
+                        link: {
+                            pre: function (scope, element) {
+                                linkings.push('first-pre');
+                            },
+                            post: function (scope, element) {
+                                linkings.push('first-post');
+                            }
+                        }
+                    };
+                },
+                secondDirective: function () {
+                    return {
+                        priority: 1,
+                        link: {
+                            pre: function (scope, element) {
+                                linkings.push('second-pre');
+                            },
+                            post: function (scope, element) {
+                                linkings.push('second-post');
+                            }
+                        }
+                    };
+                }
+            });
+            injector.invoke(function ($compile, $rootScope) {
+                var el = $('<div first-directive second-directive></div>');
+                $compile(el)($rootScope);
+                expect(linkings).toEqual(['first-pre', 'second-pre', 'second-post', 'first-post']);
+            });
+        });
     });
 
 });
