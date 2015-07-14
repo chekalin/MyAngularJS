@@ -1175,6 +1175,26 @@ describe('$compile', function () {
                 expect(linkings).toEqual(['first-pre', 'second-pre', 'second-post', 'first-post']);
             });
         });
+
+        it('stabilizes node list during linking', function () {
+            var givenElements = [];
+            var injector = makeInjectorWithDirectives('myDirective', function () {
+                return {
+                    link: function (scope, element, attrs) {
+                        givenElements.push(element[0]);
+                        element.after('<div></div>');
+                    }
+                };
+            });
+            injector.invoke(function ($compile, $rootScope) {
+                var el = $('<div><div my-directive></div><div my-directive></div></div>');
+                var el1 = el[0].childNodes[0];
+                var el2 = el[0].childNodes[1];
+                $compile(el)($rootScope);
+                expect(givenElements[0]).toBe(el1);
+                expect(givenElements[1]).toBe(el2);
+            });
+        });
     });
 
 });
