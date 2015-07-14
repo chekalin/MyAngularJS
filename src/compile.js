@@ -264,12 +264,35 @@ function $CompileProvider($provide) {
             return $(nodes);
         }
 
+        function groupElementsLinkFnWrapper(linkFn, attrStart, attrEnd) {
+            return function (scope, element, attrs) {
+                var group = groupScan(element[0], attrStart, attrEnd);
+                return linkFn(scope, group, attrs);
+            };
+        }
+
         function applyDirectivesToNode(directives, compileNode, attrs) {
             var $compileNode = $(compileNode);
             var terminalPriority = -Number.MAX_VALUE;
             var terminal = false;
             var preLinkFns = [];
             var postLinkFns = [];
+
+            function addLinkFns(preLinkFn, postLinkFn, attrStart, attrEnd) {
+                if (preLinkFn) {
+                    if (attrStart) {
+                        preLinkFn = groupElementsLinkFnWrapper(preLinkFn, attrStart, attrEnd);
+                    }
+                    preLinkFns.push(preLinkFn);
+                }
+                if (postLinkFn) {
+                    if (attrStart) {
+                        postLinkFn = groupElementsLinkFnWrapper(postLinkFn, attrStart, attrEnd);
+                    }
+                    postLinkFns.push(postLinkFn);
+                }
+            }
+
             _.forEach(directives, function (directive) {
                 if (directive.priority < terminalPriority) {
                     return false;
@@ -279,15 +302,12 @@ function $CompileProvider($provide) {
                 }
                 if (directive.compile) {
                     var linkFn = directive.compile($compileNode, attrs);
+                    var attrStart = directive.$$start;
+                    var attrEnd = directive.$$end;
                     if (_.isFunction(linkFn)) {
-                        postLinkFns.push(linkFn);
+                        addLinkFns(null, linkFn, attrStart, attrEnd);
                     } else if (linkFn) {
-                        if (linkFn.pre) {
-                            preLinkFns.push(linkFn.pre);
-                        }
-                        if (linkFn.post) {
-                            postLinkFns.push(linkFn.post);
-                        }
+                        addLinkFns(linkFn.pre, linkFn.post, attrStart, attrEnd);
                     }
                 }
                 if (directive.terminal) {
