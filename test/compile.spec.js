@@ -1381,7 +1381,7 @@ describe('$compile', function () {
             });
         });
 
-        it('adds class and datafor element with isolated scope', function () {
+        it('adds class and data for element with isolated scope', function () {
             var givenScope;
             var injector = makeInjectorWithDirectives('myDirective', function () {
                 return {
