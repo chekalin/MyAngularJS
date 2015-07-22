@@ -1,4 +1,5 @@
 /* jshint globalstrict: true */
+/* exported $ParseProvider */
 'use strict';
 
 function $ParseProvider() {
@@ -39,7 +40,7 @@ function constantWatchDelegate(scope, listenerFn, valueEq, watchFn) {
         function () {
             return watchFn(scope);
         },
-        function (newValue, oldValue, scope) {
+        function () {
             if (_.isFunction(listenerFn)) {
                 listenerFn.apply(this, arguments);
             }

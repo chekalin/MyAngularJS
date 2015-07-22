@@ -1,6 +1,7 @@
 /* jshint globalstrict: true */
 "use strict";
 
+// jshint unused:false
 function $RootScopeProvider() {
     var TTL = 10;
 

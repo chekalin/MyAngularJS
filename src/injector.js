@@ -1,5 +1,6 @@
 /* jshint globalstrict: true*/
 /* global HashMap */
+/* exported createInjector */
 
 'use strict';
 

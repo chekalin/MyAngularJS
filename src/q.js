@@ -1,3 +1,5 @@
+/* exported $QProvider, $$QProvider */
+
 function qFactory(callLater) {
     'use strict';
 

@@ -1,7 +1,8 @@
-/* jshint globalstrict: true */
-'use strict';
+/* exported setupModuleLoader */
 
 function setupModuleLoader(window) {
+    'use strict';
+
     function ensure(obj, name, factory) {
         return (obj[name] = obj[name] || factory());
     }

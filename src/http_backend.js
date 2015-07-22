@@ -1,3 +1,4 @@
+/* exported $HttpBackendProvider */
 function $HttpBackendProvider() {
     'use strict';
 

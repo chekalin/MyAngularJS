@@ -1,3 +1,4 @@
+/* exported $ControllerProvider */
 function $ControllerProvider() {
     'use strict';
 

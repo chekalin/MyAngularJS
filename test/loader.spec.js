@@ -1,5 +1,4 @@
 /* global setupModuleLoader: false */
-/* global it, expect, describe, beforeEach: false */
 
 describe('setupModuleLoader', function () {
     'use strict';

@@ -1,6 +1,8 @@
 /* global angular, setupModuleLoader, $ParseProvider, $RootScopeProvider, $QProvider, $$QProvider */
 /* global $HttpBackendProvider, $HttpProvider, $CompileProvider */
 /* global $ControllerProvider */
+/* exported publishExternalAPI */
+
 function publishExternalAPI() {
     'use strict';
 

@@ -1,5 +1,5 @@
 /* jshint maxstatements: false */
-/* global jasmine, it, expect, describe, beforeEach, afterEach, sinon */
+/* global sinon */
 /* global publishExternalAPI, createInjector */
 
 describe('$http', function () {

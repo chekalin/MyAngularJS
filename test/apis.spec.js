@@ -1,5 +1,4 @@
 /* global hashKey, HashMap: false */
-/* global jasmine, it, expect, describe, beforeEach: false */
 
 describe('apis', function () {
     'use strict';

@@ -1,6 +1,5 @@
 /* jshint maxstatements: false */
 /* global publishExternalAPI, createInjector */
-/* global jasmine, it, expect, describe, beforeEach */
 
 describe("Scope", function () {
     "use strict";
@@ -1386,8 +1385,6 @@ describe("Scope", function () {
         });
 
         it("works like a normal watch for NaN", function () {
-            var valueProvided;
-
             scope.aValue = 0 / 0;
             scope.counter = 0;
 

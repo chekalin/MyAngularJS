@@ -1,3 +1,4 @@
+/* exported $HttpProvider */
 function $HttpProvider() {
     'use strict';
 

@@ -1,5 +1,4 @@
 /* global publishExternalAPI, createInjector */
-/* global jasmine, it, expect, describe, beforeEach: false */
 
 describe('$compile', function () {
     'use strict';
