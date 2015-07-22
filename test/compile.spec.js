@@ -667,8 +667,8 @@ describe('$compile', function () {
                 'myDirective',
                 '<my-directive my-attr="1" my-other-attr="two"></my-directive>',
                 function (el, attrs) {
-                    expect(attrs.myAttr).toEqual("1");
-                    expect(attrs.myOtherAttr).toEqual("two");
+                    expect(attrs.myAttr).toEqual('1');
+                    expect(attrs.myOtherAttr).toEqual('two');
                 });
         });
 
@@ -677,7 +677,7 @@ describe('$compile', function () {
                 'myDirective',
                 '<my-directive my-attr="  val  "></my-directive>',
                 function (el, attrs) {
-                    expect(attrs.myAttr).toEqual("val");
+                    expect(attrs.myAttr).toEqual('val');
                 }
             );
         });

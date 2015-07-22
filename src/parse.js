@@ -268,7 +268,7 @@ Lexer.prototype.lex = function (text) {
             this.readNumber();
         } else if (this.is('\'"')) {
             this.readString(this.ch);
-        } else if (this.is("[],{}:.()?;")) {
+        } else if (this.is('[],{}:.()?;')) {
             this.tokens.push({
                 text: this.ch
             });
@@ -474,7 +474,7 @@ var generatedGetterFunction = function (keys) {
 };
 
 var getterFn = _.memoize(function (ident) {
-    var pathKeys = ident.split(".");
+    var pathKeys = ident.split('.');
     var fn;
     if (pathKeys.length === 1) {
         fn = simpleGetterFn1(pathKeys[0]);
@@ -597,13 +597,13 @@ Parser.prototype.primary = function () {
 var ensureSafeObject = function (obj) {
     if (obj) {
         if (obj.document && obj.location && obj.alert && obj.setInterval) {
-            throw "referencing window in Angular expressions is disallowed!";
+            throw 'referencing window in Angular expressions is disallowed!';
         } else if (obj.children && (obj.nodeName || (obj.prop && obj.attr && obj.find))) {
-            throw "referencing DOM nodes in Angular expressions is disallowed!";
+            throw 'referencing DOM nodes in Angular expressions is disallowed!';
         } else if (obj.constructor === obj) {
-            throw "referencing Function in Angular expressions is disallowed!";
+            throw 'referencing Function in Angular expressions is disallowed!';
         } else if (obj.getOwnPropertyNames || obj.getOwnPropertyDescriptor) {
-            throw "referencing Object in Angular expressions is disallowed!";
+            throw 'referencing Object in Angular expressions is disallowed!';
         }
     }
     return obj;
@@ -612,9 +612,9 @@ var ensureSafeObject = function (obj) {
 var ensureSafeFunction = function (fun) {
     if (fun) {
         if (fun.constructor === fun) {
-            throw "referencing Function in Angular expressions is disallowed!";
+            throw 'referencing Function in Angular expressions is disallowed!';
         } else if (fun === APPLY || fun === BIND || fun === CALL) {
-            throw "referencing call, apply or bind in Angular expressions is disallowed!";
+            throw 'referencing call, apply or bind in Angular expressions is disallowed!';
         }
     }
     return fun;
@@ -745,7 +745,7 @@ Parser.prototype.assignment = function () {
     var left = this.ternary();
     if (this.expect('=')) {
         if (!left.assign) {
-            throw "Implies assignment but cannot be assigned to";
+            throw 'Implies assignment but cannot be assigned to';
         }
         var right = this.ternary();
 

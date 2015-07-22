@@ -1,5 +1,5 @@
 /* jshint globalstrict: true */
-"use strict";
+'use strict';
 
 // jshint unused:false
 function $RootScopeProvider() {
@@ -92,7 +92,7 @@ function $RootScopeProvider() {
             var ttl = TTL;
             var dirty;
             this.$root.$$lastDirtyWatch = null;
-            this.$beginPhase("$digest");
+            this.$beginPhase('$digest');
 
             if (this.$root.$$applyAsyncId) {
                 clearTimeout(this.$$applyAsyncId);
@@ -111,7 +111,7 @@ function $RootScopeProvider() {
                 dirty = this.$$digestOnce();
                 if ((dirty || this.$$asyncQueue.length) && !(ttl--)) {
                     this.$clearPhase();
-                    throw TTL + " digest iterations reached";
+                    throw TTL + ' digest iterations reached';
                 }
             } while (dirty || this.$$asyncQueue.length);
             this.$clearPhase();
@@ -142,7 +142,7 @@ function $RootScopeProvider() {
 
         Scope.prototype.$apply = function (expr) {
             try {
-                this.$beginPhase("$apply");
+                this.$beginPhase('$apply');
                 return this.$eval(expr);
             } finally {
                 this.$clearPhase();

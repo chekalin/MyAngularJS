@@ -2,7 +2,7 @@
 /* global publishExternalAPI, createInjector */
 
 describe('$q', function () {
-    "use strict";
+    'use strict';
 
     var $q, $$q, $rootScope;
 

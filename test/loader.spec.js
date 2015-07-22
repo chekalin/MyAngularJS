@@ -31,13 +31,13 @@ describe('setupModuleLoader', function () {
         expect(window.angular.module).toBe(module);
     });
 
-    describe("modules", function () {
+    describe('modules', function () {
 
         beforeEach(function () {
             setupModuleLoader(window);
         });
 
-        it("allows registering a module", function () {
+        it('allows registering a module', function () {
             var myModule = window.angular.module('myModule', []);
             expect(myModule).toBeDefined();
             expect(myModule.name).toEqual('myModule');
