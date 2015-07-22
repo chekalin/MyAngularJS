@@ -5,6 +5,16 @@ module.exports = function (grunt) {
         clean: {
             build: ['build']
         },
+        jscs: {
+            src: [
+                'src/**/*.js',
+                'test/**/*.js',
+                'Gruntfile.js'
+            ],
+            options: {
+                config: '.jscsrc'
+            }
+        },
         jshint: {
             options: grunt.file.readJSON('.jshintrc'),
             src: ['src/**/*.js'],
@@ -39,8 +49,9 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-karma');
+    grunt.loadNpmTasks("grunt-jscs");
 
     grunt.registerTask('default', ['test']);
 
-    grunt.registerTask('test', ['clean', 'jshint', 'karma:unit']);
+    grunt.registerTask('test', ['clean', 'jscs', 'jshint', 'karma:unit']);
 };

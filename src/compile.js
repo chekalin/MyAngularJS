@@ -113,7 +113,6 @@ function $CompileProvider($provide) {
             }
         };
 
-
         Attributes.prototype.$observe = function (key, observeFn) {
             var self = this;
             this.$$observers = this.$$observers || Object.create(null);

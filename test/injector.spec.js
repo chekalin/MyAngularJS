@@ -212,8 +212,10 @@ describe('injector', function () {
         it('strips surrounding undescores from argument names when parsing', function () {
             var injector = createInjector([]);
 
+            //jscs:disable requireCamelCaseOrUpperCaseIdentifiers
             var fn = function (a, _b_, c_, _d, an_argument) { // jshint ignore:line
             };
+            //jscs:enable requireCamelCaseOrUpperCaseIdentifiers
 
             expect(injector.annotate(fn)).toEqual(['a', 'b', 'c_', '_d', 'an_argument']);
         });

@@ -148,7 +148,6 @@ describe("Scope", function () {
             }
         );
 
-
         scope.$applyAsync(function (scope) {
             scope.aValue = 'abc';
         });
@@ -949,7 +948,6 @@ describe("Scope", function () {
             expect(gotOldValues).toEqual([]);
         });
 
-
         it("can be deregistered", function () {
             var counter = 0;
 
@@ -1278,7 +1276,6 @@ describe("Scope", function () {
                 done();
             }, 50);
         });
-
 
         it("executes $evalAsync functions on isolated scopes", function (done) {
             var child = parent.$new(true);
