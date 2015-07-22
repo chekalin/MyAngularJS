@@ -47,7 +47,7 @@
   "validthis": false,
   "noyield": false,
   "browser": true,
-  "node": true,
+  "devel": true,
   "globals": {
     "_": false,
     "angular": false,

@@ -1,13 +1,24 @@
 module.exports = function (grunt) {
+    'use strict';
 
     grunt.initConfig({
         clean: {
             build: ['build']
         },
         jshint: {
-            all: ['src/**/*.js', 'test/**/*.js'],
-            options: {
-                jshintrc: true
+            options: grunt.file.readJSON('.jshintrc'),
+            src: ['src/**/*.js'],
+            test: {
+                src: ['test/**/*.js'],
+                options: {
+                    jasmine: true
+                }
+            },
+            build: {
+                src: ['Gruntfile.js'],
+                options: {
+                    node: true
+                }
             }
         },
         karma: {

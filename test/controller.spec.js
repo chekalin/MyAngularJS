@@ -1,5 +1,4 @@
 /* global publishExternalAPI, createInjector */
-/* global jasmine, it, expect, describe, beforeEach: false */
 
 describe('$controller', function () {
     'use strict';
@@ -15,6 +14,11 @@ describe('$controller', function () {
 
         function MyController() {
             this.invoked = true;
+        }
+
+        var something;
+        if (something === null) {
+            console.log('stuff');
         }
 
         var controller = $controller(MyController);

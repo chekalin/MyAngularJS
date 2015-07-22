@@ -1,3 +1,4 @@
+/* jshint globalstrict: true*/
 /* global HashMap */
 
 'use strict';
