@@ -304,7 +304,8 @@ function $CompileProvider($provide) {
                         return _.map(require, getControllers);
                     } else {
                         var value;
-                        var match = require.match(/^(\^\^?)?/);
+                        var match = require.match(/^(\^\^?)?(\?)?/);
+                        var optional = match[2];
                         require = require.substring(match[0].length);
                         if (match[1]) {
                             if (match[1] === '^^') {
@@ -323,10 +324,10 @@ function $CompileProvider($provide) {
                                 value = controllers[require].instance;
                             }
                         }
-                        if (!value) {
+                        if (!value && !optional) {
                             throw 'Controller ' + require + ' required by directive cannot be found!';
                         }
-                        return value;
+                        return value || null;
                     }
                 }
 

@@ -2171,4 +2171,26 @@ describe('$compile', function () {
         });
     });
 
+    it('does not throw when requiring missing controller when optional', function () {
+        function MyController() {
+        }
+
+        var gotController;
+        var injector = createInjector(['ng', function ($compileProvider) {
+            $compileProvider.directive('myDirective', function () {
+                return {
+                    require: "?noSuchDirective",
+                    link: function (scope, element, attrs, controller) {
+                        gotController = controller;
+                    }
+                };
+            });
+        }]);
+        injector.invoke(function ($compile, $rootScope) {
+            var el = $('<div my-directive></div>');
+            $compile(el)($rootScope);
+            expect(gotController).toBe(null);
+        });
+    });
+
 });
