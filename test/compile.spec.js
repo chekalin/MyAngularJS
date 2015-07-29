@@ -2113,4 +2113,62 @@ describe('$compile', function () {
         });
     });
 
+    it('can be required from parent directive with ^^', function () {
+        function MyController() {
+        }
+
+        var gotMyController;
+        var injector = createInjector(['ng', function ($compileProvider) {
+            $compileProvider.directive('myDirective', function () {
+                return {
+                    scope: {},
+                    controller: MyController
+                };
+            });
+            $compileProvider.directive('myOtherDirective', function () {
+                return {
+                    require: '^^myDirective',
+                    link: function (scope, element, attrs, myController) {
+                        gotMyController = myController;
+                    }
+                };
+            });
+        }]);
+        injector.invoke(function ($compile, $rootScope) {
+            var el = $('<div my-directive><div my-other-directive></div></div>');
+            $compile(el)($rootScope);
+            expect(gotMyController).toBeDefined();
+            expect(gotMyController instanceof MyController).toBe(true);
+        });
+    });
+
+    it('does not find sibling directives when requiring with ^^', function () {
+        function MyController() {
+        }
+
+        var gotMyController;
+        var injector = createInjector(['ng', function ($compileProvider) {
+            $compileProvider.directive('myDirective', function () {
+                return {
+                    scope: {},
+                    controller: MyController
+                };
+            });
+            $compileProvider.directive('myOtherDirective', function () {
+                return {
+                    require: '^^myDirective',
+                    link: function (scope, element, attrs, myController) {
+                        gotMyController = myController;
+                    }
+                };
+            });
+        }]);
+        injector.invoke(function ($compile, $rootScope) {
+            var el = $('<div my-directive my-other-directive></div>');
+            expect(function () {
+                $compile(el)($rootScope);
+            }).toThrow();
+        });
+    });
+
 });

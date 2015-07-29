@@ -304,9 +304,12 @@ function $CompileProvider($provide) {
                         return _.map(require, getControllers);
                     } else {
                         var value;
-                        var match = require.match(/^(\^)?/);
+                        var match = require.match(/^(\^\^?)?/);
                         require = require.substring(match[0].length);
                         if (match[1]) {
+                            if (match[1] === '^^') {
+                                $element = $element.parent();
+                            }
                             while ($element.length) {
                                 value = $element.data('$' + require + 'Controller');
                                 if (value) {
