@@ -299,18 +299,32 @@ function $CompileProvider($provide) {
                 var controllerDirectives;
                 var controllers = {};
 
-                function getControllers(require) {
+                function getControllers(require, $element) {
                     if (_.isArray(require)) {
                         return _.map(require, getControllers);
+                    } else {
+                        var value;
+                        var match = require.match(/^(\^)?/);
+                        require = require.substring(match[0].length);
+                        if (match[1]) {
+                            while ($element.length) {
+                                value = $element.data('$' + require + 'Controller');
+                                if (value) {
+                                    break;
+                                } else {
+                                    $element = $element.parent();
+                                }
+                            }
+                        } else {
+                            if (controllers[require]) {
+                                value = controllers[require].instance;
+                            }
+                        }
+                        if (!value) {
+                            throw 'Controller ' + require + ' required by directive cannot be found!';
+                        }
+                        return value;
                     }
-                    var value;
-                    if (controllers[require]) {
-                        value = controllers[require].instance;
-                    }
-                    if (!value) {
-                        throw 'Controller ' + require + ' required by directive cannot be found!';
-                    }
-                    return value;
                 }
 
                 function addLinkFns(preLinkFn, postLinkFn, attrStart, attrEnd, isolateScope, require) {
@@ -397,8 +411,9 @@ function $CompileProvider($provide) {
                             if (controllerName === '@') {
                                 controllerName = attrs[directive.name];
                             }
-                            controllers[directive.name] =
-                                $controller(controllerName, locals, true, directive.controllerAs);
+                            var controller = $controller(controllerName, locals, true, directive.controllerAs);
+                            controllers[directive.name] = controller;
+                            $element.data('$' + directive.name + 'Controller', controller.instance);
                         });
                     }
 
@@ -462,7 +477,7 @@ function $CompileProvider($provide) {
                             linkFn.isolateScope ? isolateScope : scope,
                             $element,
                             attrs,
-                            linkFn.require && getControllers(linkFn.require)
+                            linkFn.require && getControllers(linkFn.require, $element)
                         );
                     });
                     if (childLinkFn) {
@@ -473,7 +488,7 @@ function $CompileProvider($provide) {
                             linkFn.isolateScope ? isolateScope : scope,
                             $element,
                             attrs,
-                            linkFn.require && getControllers(linkFn.require)
+                            linkFn.require && getControllers(linkFn.require, $element)
                         );
                     });
                 }
