@@ -63,6 +63,7 @@ function $CompileProvider($provide) {
                         }
                         directive.name = directive.name || name;
                         directive.index = index;
+                        directive.require = directive.require || (directive.controller && name)
                         return directive;
                     });
                 }]);
