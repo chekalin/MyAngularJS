@@ -2172,9 +2172,6 @@ describe('$compile', function () {
     });
 
     it('does not throw when requiring missing controller when optional', function () {
-        function MyController() {
-        }
-
         var gotController;
         var injector = createInjector(['ng', function ($compileProvider) {
             $compileProvider.directive('myDirective', function () {
@@ -2193,4 +2190,50 @@ describe('$compile', function () {
         });
     });
 
+    it('allows optional marker after parent marker', function() {
+        var gotController;
+        var injector = createInjector(['ng', function ($compileProvider) {
+            $compileProvider.directive('myDirective', function () {
+                return {
+                    require: "^?noSuchDirective",
+                    link: function (scope, element, attrs, controller) {
+                        gotController = controller;
+                    }
+                };
+            });
+        }]);
+        injector.invoke(function ($compile, $rootScope) {
+            var el = $('<div my-directive></div>');
+            $compile(el)($rootScope);
+            expect(gotController).toBe(null);
+        });
+    });
+
+    it('allows optional marker before parent marker', function() {
+        function MyController() {
+        }
+        var gotController;
+        var injector = createInjector(['ng', function ($compileProvider) {
+            $compileProvider.directive('myDirective', function () {
+                return {
+                    scope: {},
+                    controller: MyController
+                };
+            });
+            $compileProvider.directive('myOtherDirective', function () {
+                return {
+                    require: "?^myDirective",
+                    link: function (scope, element, attrs, controller) {
+                        gotController = controller;
+                    }
+                };
+            });
+        }]);
+        injector.invoke(function ($compile, $rootScope) {
+            var el = $('<div my-directive><div my-other-directive></div></div>');
+            $compile(el)($rootScope);
+            expect(gotController).toBeDefined();
+            expect(gotController instanceof MyController).toBe(true);
+        });
+    });
 });
