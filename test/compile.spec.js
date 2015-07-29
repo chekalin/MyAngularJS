@@ -2190,7 +2190,7 @@ describe('$compile', function () {
         });
     });
 
-    it('allows optional marker after parent marker', function() {
+    it('allows optional marker after parent marker', function () {
         var gotController;
         var injector = createInjector(['ng', function ($compileProvider) {
             $compileProvider.directive('myDirective', function () {
@@ -2209,7 +2209,7 @@ describe('$compile', function () {
         });
     });
 
-    it('allows optional marker before parent marker', function() {
+    it('allows optional marker before parent marker', function () {
         function MyController() {
         }
         var gotController;
@@ -2234,6 +2234,76 @@ describe('$compile', function () {
             $compile(el)($rootScope);
             expect(gotController).toBeDefined();
             expect(gotController instanceof MyController).toBe(true);
+        });
+    });
+
+    describe('template', function () {
+        it('populates an element during compilation', function () {
+            var injector = makeInjectorWithDirectives('myDirective', function () {
+                return {
+                    template: '<div class="from-template"></div>'
+                };
+            });
+            injector.invoke(function ($compile) {
+                var el = $('<div my-directive></div>');
+                $compile(el);
+                expect(el.find('> .from-template').length).toBe(1);
+            });
+        });
+
+        it('replaces existing children', function () {
+            var injector = makeInjectorWithDirectives('myDirective', function () {
+                return {
+                    template: '<div class="from-template"></div>'
+                };
+            });
+            injector.invoke(function ($compile) {
+                var el = $('<div my-directive><div class="existing"></div></div>');
+                $compile(el);
+                expect(el.find('> .existing').length).toBe(0);
+            });
+        });
+
+        it('compiles template contents', function () {
+            var compileSpy = jasmine.createSpy("compile function of embedded directive");
+            var injector = makeInjectorWithDirectives({
+                myDirective: function () {
+                    return {
+                        template: '<div my-other-directive></div>'
+                    };
+                },
+                myOtherDirective: function () {
+                    return {
+                        compile: compileSpy
+                    }
+                }
+            });
+            injector.invoke(function ($compile) {
+                var el = $('<div my-directive></div>');
+                $compile(el);
+                expect(compileSpy).toHaveBeenCalled();
+            });
+        });
+
+        it('does not allow two directives with templates', function () {
+            var injector = makeInjectorWithDirectives({
+                myDirective: function () {
+                    return {
+                        template: '<div></div>'
+                    };
+                },
+                myOtherDirective: function () {
+                    return {
+                        template: '<div></div>'
+                    }
+                }
+            });
+            injector.invoke(function ($compile) {
+                var el = $('<div my-directive my-other-directive></div>');
+                expect(function () {
+                    $compile(el);
+                }).toThrow();
+            });
         });
     });
 });

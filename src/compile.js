@@ -298,6 +298,7 @@ function $CompileProvider($provide) {
                 var newIsolateScopeDirective;
                 var controllerDirectives;
                 var controllers = {};
+                var templateDirective;
 
                 function getControllers(require, $element) {
                     if (_.isArray(require)) {
@@ -308,7 +309,7 @@ function $CompileProvider($provide) {
                         var optional = match[2];
                         require = require.substring(match[0].length);
                         if (match[1] || match[3]) {
-                            if(match[3] && !match[1]) {
+                            if (match[3] && !match[1]) {
                                 match[1] = match[3];
                             }
                             if (match[1] === '^^') {
@@ -391,6 +392,13 @@ function $CompileProvider($provide) {
                         } else if (linkFn) {
                             addLinkFns(linkFn.pre, linkFn.post, attrStart, attrEnd, isolateScope, require);
                         }
+                    }
+                    if (directive.template) {
+                        if (templateDirective) {
+                            throw 'Multiple directives asking for templates';
+                        }
+                        templateDirective = directive;
+                        $compileNode.html(directive.template);
                     }
                     if (directive.terminal) {
                         terminal = true;
