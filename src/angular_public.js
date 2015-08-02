@@ -1,6 +1,6 @@
 /* global angular, setupModuleLoader, $ParseProvider, $RootScopeProvider, $QProvider, $$QProvider */
 /* global $HttpBackendProvider, $HttpProvider, $CompileProvider */
-/* global $ControllerProvider */
+/* global $ControllerProvider, ngControllerDirective */
 /* exported publishExternalAPI */
 
 function publishExternalAPI() {

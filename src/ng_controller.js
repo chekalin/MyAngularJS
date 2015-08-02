@@ -7,5 +7,5 @@ function ngControllerDirective() {
         restrict: 'A',
         scope: true,
         controller: '@'
-    }
+    };
 }

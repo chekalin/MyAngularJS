@@ -63,7 +63,7 @@ function $CompileProvider($provide) {
                         }
                         directive.name = directive.name || name;
                         directive.index = index;
-                        directive.require = directive.require || (directive.controller && name)
+                        directive.require = directive.require || (directive.controller && name);
                         return directive;
                     });
                 }]);
@@ -355,7 +355,7 @@ function $CompileProvider($provide) {
                 }
 
                 _.forEach(directives, function (directive) {
-                    /*jshint maxcomplexity:15 */
+                    /*jshint maxcomplexity:17 */
 
                     if (directive.priority < terminalPriority) {
                         return false;

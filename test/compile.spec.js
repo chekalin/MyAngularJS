@@ -1,3 +1,4 @@
+/* jshint maxstatements: false */
 /* global publishExternalAPI, createInjector */
 
 describe('$compile', function () {
@@ -2176,7 +2177,7 @@ describe('$compile', function () {
         var injector = createInjector(['ng', function ($compileProvider) {
             $compileProvider.directive('myDirective', function () {
                 return {
-                    require: "?noSuchDirective",
+                    require: '?noSuchDirective',
                     link: function (scope, element, attrs, controller) {
                         gotController = controller;
                     }
@@ -2195,7 +2196,7 @@ describe('$compile', function () {
         var injector = createInjector(['ng', function ($compileProvider) {
             $compileProvider.directive('myDirective', function () {
                 return {
-                    require: "^?noSuchDirective",
+                    require: '^?noSuchDirective',
                     link: function (scope, element, attrs, controller) {
                         gotController = controller;
                     }
@@ -2222,7 +2223,7 @@ describe('$compile', function () {
             });
             $compileProvider.directive('myOtherDirective', function () {
                 return {
-                    require: "?^myDirective",
+                    require: '?^myDirective',
                     link: function (scope, element, attrs, controller) {
                         gotController = controller;
                     }
@@ -2265,7 +2266,7 @@ describe('$compile', function () {
         });
 
         it('compiles template contents', function () {
-            var compileSpy = jasmine.createSpy("compile function of embedded directive");
+            var compileSpy = jasmine.createSpy('compile function of embedded directive');
             var injector = makeInjectorWithDirectives({
                 myDirective: function () {
                     return {
@@ -2275,7 +2276,7 @@ describe('$compile', function () {
                 myOtherDirective: function () {
                     return {
                         compile: compileSpy
-                    }
+                    };
                 }
             });
             injector.invoke(function ($compile) {
@@ -2295,7 +2296,7 @@ describe('$compile', function () {
                 myOtherDirective: function () {
                     return {
                         template: '<div></div>'
-                    }
+                    };
                 }
             });
             injector.invoke(function ($compile) {
