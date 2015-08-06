@@ -355,7 +355,7 @@ function $CompileProvider($provide) {
                 }
 
                 _.forEach(directives, function (directive) {
-                    /*jshint maxcomplexity:17 */
+                    /*jshint maxcomplexity:18 */
 
                     if (directive.priority < terminalPriority) {
                         return false;
@@ -398,7 +398,9 @@ function $CompileProvider($provide) {
                             throw 'Multiple directives asking for templates';
                         }
                         templateDirective = directive;
-                        $compileNode.html(directive.template);
+                        $compileNode.html(_.isFunction(directive.template) ?
+                            directive.template($compileNode, attrs) :
+                            directive.template);
                     }
                     if (directive.terminal) {
                         terminal = true;
