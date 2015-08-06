@@ -2638,5 +2638,30 @@ describe('$compile', function () {
                 expect(linkFnSpy.calls.first().args[2].myDirective).toBeDefined();
             });
         });
+
+        it('links directives that were compiled earlier', function () {
+            var linkFnSpy = jasmine.createSpy('link function');
+            var injector = makeInjectorWithDirectives({
+                myDirective: function () {
+                    return {link: linkFnSpy};
+                },
+                myOtherDirective: function () {
+                    return {templateUrl: '/myOtherDirective.html'};
+                }
+            });
+            injector.invoke(function ($compile, $rootScope) {
+                var el = $('<div my-directive my-other-directive></div>');
+                var linkFn = $compile(el);
+                $rootScope.$apply();
+                linkFn($rootScope);
+
+                requests[0].respond(200, {}, '<div my-other-directive></div>');
+
+                expect(linkFnSpy).toHaveBeenCalled();
+                expect(linkFnSpy.calls.first().args[0]).toBe($rootScope);
+                expect(linkFnSpy.calls.first().args[1][0]).toBe(el[0]);
+                expect(linkFnSpy.calls.first().args[2].myOtherDirective).toBeDefined();
+            });
+        });
     });
 });
