@@ -290,13 +290,16 @@ function $CompileProvider($provide) {
 
             function compileTemplateUrl(directives, $compileNode, attrs) {
                 var origAsyncDirective = directives.shift();
+                var templateUrl = _.isFunction(origAsyncDirective.templateUrl) ?
+                    origAsyncDirective.templateUrl($compileNode, attrs) :
+                    origAsyncDirective.templateUrl;
                 var derivedSyncDirective = _.assign(
                     {},
                     origAsyncDirective,
                     {templateUrl: null}
                 );
                 $compileNode.empty();
-                $http.get(origAsyncDirective.templateUrl).success(function (template) {
+                $http.get(templateUrl).success(function (template) {
                     directives.unshift(derivedSyncDirective);
                     $compileNode.html(template);
                     applyDirectivesToNode(directives, $compileNode, attrs);

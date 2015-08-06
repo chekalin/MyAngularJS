@@ -2508,5 +2508,22 @@ describe('$compile', function () {
                 expect(compileSpy).toHaveBeenCalled();
             });
         });
+
+        it('supports functions as values', function () {
+            var templateUrlFnSpy = jasmine.createSpy('template url function')
+                .and.returnValue('/myDirective.html');
+            var injector = makeInjectorWithDirectives('myDirective', function () {
+                return {
+                    templateUrl: templateUrlFnSpy
+                };
+            });
+            injector.invoke(function($compile, $rootScope) {
+                var el = $('<div my-directive></div>');
+                $compile(el);
+                $rootScope.$apply();
+                expect(templateUrlFnSpy.calls.first().args[0][0]).toBe(el[0]);
+                expect(templateUrlFnSpy.calls.first().args[1]).toBeDefined();
+            });
+        });
     });
 });
