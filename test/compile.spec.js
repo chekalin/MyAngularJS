@@ -2568,5 +2568,75 @@ describe('$compile', function () {
                 expect(el.find('> .replacement').length).toBe(1);
             });
         });
+
+        it('links the directive when public link fnction is invoked', function () {
+            var linkFnSpy = jasmine.createSpy('link function');
+            var injector = makeInjectorWithDirectives('myDirective', function () {
+                return {
+                    templateUrl: '/myDirective.html',
+                    link: linkFnSpy
+                };
+            });
+            injector.invoke(function ($compile, $rootScope) {
+                var el = $('<div my-directive></div>');
+                var linkFn = $compile(el);
+                $rootScope.$apply();
+
+                requests[0].respond(200, {}, '<div></div>');
+
+                linkFn($rootScope);
+                expect(linkFnSpy).toHaveBeenCalled();
+                expect(linkFnSpy.calls.first().args[0]).toBe($rootScope);
+                expect(linkFnSpy.calls.first().args[1][0]).toBe(el[0]);
+                expect(linkFnSpy.calls.first().args[2].myDirective).toBeDefined();
+            });
+        });
+
+        it('links child elements when public link function is invoked', function () {
+            var linkFnSpy = jasmine.createSpy('link function');
+            var injector = makeInjectorWithDirectives({
+                myDirective: function () {
+                    return {templateUrl: '/myDirective.html'};
+                },
+                myOtherDirective: function () {
+                    return {link: linkFnSpy};
+                }
+            });
+            injector.invoke(function ($compile, $rootScope) {
+                var el = $('<div my-directive></div>');
+                var linkFn = $compile(el);
+                $rootScope.$apply();
+
+                requests[0].respond(200, {}, '<div my-other-directive></div>');
+
+                linkFn($rootScope);
+                expect(linkFnSpy).toHaveBeenCalled();
+                expect(linkFnSpy.calls.first().args[0]).toBe($rootScope);
+                expect(linkFnSpy.calls.first().args[1][0]).toBe(el[0].firstChild);
+                expect(linkFnSpy.calls.first().args[2].myOtherDirective).toBeDefined();
+            });
+        });
+
+        it('links when template arrives if node link fn was called', function () {
+            var linkFnSpy = jasmine.createSpy('link function');
+            var injector = makeInjectorWithDirectives('myDirective', function () {
+                return {
+                    templateUrl: '/myDirective.html',
+                    link: linkFnSpy
+                };
+            });
+            injector.invoke(function ($compile, $rootScope) {
+                var el = $('<div my-directive></div>');
+                $compile(el)($rootScope);
+                $rootScope.$apply();
+
+                requests[0].respond(200, {}, '<div></div>');
+
+                expect(linkFnSpy).toHaveBeenCalled();
+                expect(linkFnSpy.calls.first().args[0]).toBe($rootScope);
+                expect(linkFnSpy.calls.first().args[1][0]).toBe(el[0]);
+                expect(linkFnSpy.calls.first().args[2].myDirective).toBeDefined();
+            });
+        });
     });
 });
