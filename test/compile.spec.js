@@ -2517,12 +2517,55 @@ describe('$compile', function () {
                     templateUrl: templateUrlFnSpy
                 };
             });
-            injector.invoke(function($compile, $rootScope) {
+            injector.invoke(function ($compile, $rootScope) {
                 var el = $('<div my-directive></div>');
                 $compile(el);
                 $rootScope.$apply();
                 expect(templateUrlFnSpy.calls.first().args[0][0]).toBe(el[0]);
                 expect(templateUrlFnSpy.calls.first().args[1]).toBeDefined();
+            });
+        });
+
+        it('does not allow templateUrl directive after template directive', function () {
+            var injector = makeInjectorWithDirectives({
+                myDirective: function () {
+                    return {
+                        template: '<div></div>'
+                    };
+                },
+                myOtherDirective: function () {
+                    return {
+                        templateUrl: '/myOtherDirective.html'
+                    };
+                }
+            });
+            injector.invoke(function ($compile) {
+                var el = $('<div my-directive my-other-directive></div>');
+                expect(function () {
+                    $compile(el);
+                }).toThrow();
+            });
+        });
+
+        it('does not allow template directive after templateUrl directive', function () {
+            var injector = makeInjectorWithDirectives({
+                myDirective: function () {
+                    return {
+                        templateUrl: '/myDirective.html'
+                    };
+                },
+                myOtherDirective: function () {
+                    return {
+                        template: '<div></div>'
+                    };
+                }
+            });
+            injector.invoke(function ($compile, $rootScope) {
+                var el = $('<div my-directive my-other-directive></div>');
+                $compile(el);
+                $rootScope.$apply();
+                requests[0].respond(200, {}, '<div class="replacement"></div>');
+                expect(el.find('> .replacement').length).toBe(1);
             });
         });
     });
