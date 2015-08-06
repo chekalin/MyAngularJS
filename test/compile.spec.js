@@ -2663,5 +2663,66 @@ describe('$compile', function () {
                 expect(linkFnSpy.calls.first().args[2].myOtherDirective).toBeDefined();
             });
         });
+
+        it('retains isolate scope from directives from earlier', function () {
+            var linkFnSpy = jasmine.createSpy('link function');
+            var injector = makeInjectorWithDirectives({
+                myDirective: function () {
+                    return {
+                        link: linkFnSpy,
+                        scope: {
+                            val: '=myDirective'
+                        }
+                    };
+                },
+                myOtherDirective: function () {
+                    return {templateUrl: '/myOtherDirective.html'};
+                }
+            });
+            injector.invoke(function ($compile, $rootScope) {
+                var el = $('<div my-directive="42" my-other-directive></div>');
+                var linkFn = $compile(el);
+                $rootScope.$apply();
+                linkFn($rootScope);
+
+                requests[0].respond(200, {}, '<div my-other-directive></div>');
+
+                expect(linkFnSpy).toHaveBeenCalled();
+                expect(linkFnSpy.calls.first().args[0]).toBeDefined();
+                expect(linkFnSpy.calls.first().args[0]).not.toBe($rootScope);
+                expect(linkFnSpy.calls.first().args[0].val).toBe(42);
+            });
+        });
+
+        it('sets up controller for all controller directives', function () {
+            var myDirectiveControllerInstantiated, myOtherDirectiveControllerInstantiated;
+            var injector = makeInjectorWithDirectives({
+                myDirective: function () {
+                    return {
+                        controller: function () {
+                            myDirectiveControllerInstantiated = true;
+                        }
+                    };
+                },
+                myOtherDirective: function () {
+                    return {
+                        templateUrl: '/myOtherDirective.html',
+                        controller: function () {
+                            myOtherDirectiveControllerInstantiated = true;
+                        }
+                    };
+                }
+            });
+            injector.invoke(function ($compile, $rootScope) {
+                var el = $('<div my-directive my-other-directive></div>');
+                $compile(el)($rootScope);
+                $rootScope.$apply();
+
+                requests[0].respond(200, {}, '<div my-other-directive></div>');
+
+                expect(myDirectiveControllerInstantiated).toBe(true);
+                expect(myOtherDirectiveControllerInstantiated).toBe(true);
+            });
+        });
     });
 });
