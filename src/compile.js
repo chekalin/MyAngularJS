@@ -333,6 +333,7 @@ function $CompileProvider($provide) {
                 var controllerDirectives = previousCompileContext.controllerDirectives;
                 var controllers = {};
                 var templateDirective = previousCompileContext.templateDirective;
+                var childTranscludeFn, hasTranscludeDirective;
 
                 function getControllers(require, $element) {
                     if (_.isArray(require)) {
@@ -389,7 +390,8 @@ function $CompileProvider($provide) {
                 }
 
                 _.forEach(directives, function (directive, i) {
-                    /*jshint maxcomplexity:20 */
+                    /*jshint maxcomplexity:false */
+                    /*jshint maxstatements:false */
 
                     if (directive.priority < terminalPriority) {
                         return false;
@@ -401,7 +403,15 @@ function $CompileProvider($provide) {
                         controllerDirectives = controllerDirectives || {};
                         controllerDirectives[directive.name] = directive;
                     }
-
+                    if (directive.transclude) {
+                        if (hasTranscludeDirective) {
+                            throw 'Multiple directives asking for transclude';
+                        }
+                        hasTranscludeDirective = true;
+                        var $transcludedNodes = $compileNode.clone().contents();
+                        childTranscludeFn = compile($transcludedNodes);
+                        $compileNode.empty();
+                    }
                     if (directive.scope) {
                         if (_.isObject(directive.scope)) {
                             if (newIsolateScopeDirective || newScopeDirective) {
@@ -546,7 +556,8 @@ function $CompileProvider($provide) {
                             linkFn.isolateScope ? isolateScope : scope,
                             $element,
                             attrs,
-                            linkFn.require && getControllers(linkFn.require, $element)
+                            linkFn.require && getControllers(linkFn.require, $element),
+                            childTranscludeFn
                         );
                     });
                     if (childLinkFn) {
@@ -561,7 +572,8 @@ function $CompileProvider($provide) {
                             linkFn.isolateScope ? isolateScope : scope,
                             $element,
                             attrs,
-                            linkFn.require && getControllers(linkFn.require, $element)
+                            linkFn.require && getControllers(linkFn.require, $element),
+                            childTranscludeFn
                         );
                     });
                 }
@@ -631,6 +643,7 @@ function $CompileProvider($provide) {
                 return function publicLinkFn(scope) {
                     $compileNodes.data('$scope', scope);
                     compositeLinkFn(scope, $compileNodes);
+                    return $compileNodes;
                 };
             }
 
