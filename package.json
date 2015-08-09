@@ -4,6 +4,10 @@
   "scripts": {
     "test": "grunt"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chekalin/MyAngularJS.git"
+  },
   "dependencies": {
     "lodash": "3.10.0",
     "jquery": "2.1.4"
