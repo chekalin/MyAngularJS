@@ -552,8 +552,12 @@ function $CompileProvider($provide) {
                         controller();
                     });
 
-                    function scopeBoundTranscludeFn(transcludedScope) {
-                        return boundTranscludeFn(transcludedScope, scope);
+                    function scopeBoundTranscludeFn(transcludedScope, cloneAttachFn) {
+                        if (!transcludedScope || !transcludedScope.$watch || !transcludedScope.$evalAsync) {
+                            cloneAttachFn = transcludedScope;
+                            transcludedScope = undefined;
+                        }
+                        return boundTranscludeFn(transcludedScope, cloneAttachFn, scope);
                     }
 
                     scopeBoundTranscludeFn.$$boundTransclude = boundTranscludeFn;
@@ -634,11 +638,11 @@ function $CompileProvider($provide) {
                             }
                             var boundTranscludeFn;
                             if (linkFn.nodeLinkFn.transcludeOnThisElement) {
-                                boundTranscludeFn = function (transcludedScope, containingScope) {
+                                boundTranscludeFn = function (transcludedScope, cloneAttachFn, containingScope) {
                                     if (!transcludedScope) {
                                         transcludedScope = scope.$new(false, containingScope);
                                     }
-                                    return linkFn.nodeLinkFn.transclude(transcludedScope);
+                                    return linkFn.nodeLinkFn.transclude(transcludedScope, cloneAttachFn);
                                 };
                             } else if (parentBoundTranscludeFn) {
                                 boundTranscludeFn = parentBoundTranscludeFn;

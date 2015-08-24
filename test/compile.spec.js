@@ -3113,5 +3113,74 @@ describe('$compile', function () {
                 expect(gotCompileEl[0]).not.toBe(gotLinkEl[0]);
             });
         });
+
+        it('allows connecting transcluded content', function () {
+            var injector = makeInjectorWithDirectives('myTranscluder', function () {
+                return {
+                    transclude: true,
+                    template: '<div in-template></div>',
+                    link: function (scope, element, attrs, ctrl, transcludeFn) {
+                        var myScope = scope.$new();
+                        transcludeFn(myScope, function (transcludeNode) {
+                            element.find('[in-template]').append(transcludeNode);
+                        });
+                    }
+                };
+            });
+            injector.invoke(function ($compile, $rootScope) {
+                var el = $('<div my-transcluder><div in-transclude></div></div>');
+                $compile(el)($rootScope);
+                expect(el.find('> [in-template] > [in-transclude]').length).toBe(1);
+            });
+        });
+
+        it('can be used as the only transclusion function argument', function () {
+            var injector = makeInjectorWithDirectives('myTranscluder', function () {
+                return {
+                    transclude: true,
+                    template: '<div in-template></div>',
+                    link: function (scope, element, attrs, ctrl, transcludeFn) {
+                        transcludeFn(function (transcludeNode) {
+                            element.find('[in-template]').append(transcludeNode);
+                        });
+                    }
+                };
+            });
+            injector.invoke(function ($compile, $rootScope) {
+                var el = $('<div my-transcluder><div in-transclude></div></div>');
+                $compile(el)($rootScope);
+                expect(el.find('> [in-template] > [in-transclude]').length).toBe(1);
+            });
+        });
+
+        it('allows passing data to transclusion', function () {
+            var injector = makeInjectorWithDirectives({
+                myTranscluder: function () {
+                    return {
+                        transclude: true,
+                        template: '<div in-template></div>',
+                        link: function (scope, element, attrs, ctrl, transcludeFn) {
+                            transcludeFn(function (transcludeNode, transcludeScope) {
+                                transcludeScope.dataFromTranscluder = 'Hello from transcluder';
+                                element.find('[in-template]').append(transcludeNode);
+                            });
+                        }
+                    };
+                },
+                myOtherDirective: function () {
+                    return {
+                        link: function (scope, element) {
+                            element.html(scope.dataFromTranscluder);
+                        }
+                    };
+                }
+            });
+            injector.invoke(function ($compile, $rootScope) {
+                var el = $('<div my-transcluder><div my-other-directive></div></div>');
+                $compile(el)($rootScope);
+                expect(el.find('> [in-template] > [my-other-directive]').html())
+                    .toEqual('Hello from transcluder');
+            });
+        });
     });
 });
