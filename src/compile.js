@@ -665,15 +665,22 @@ function $CompileProvider($provide) {
 
             function compile($compileNodes) {
                 var compositeLinkFn = compileNodes($compileNodes);
-                return function publicLinkFn(scope, options) {
+                return function publicLinkFn(scope, cloneAttachFn, options) {
                     options = options || {};
                     var parentBoundTranscludeFn = options.parentBoundTranscludeFn;
                     if (parentBoundTranscludeFn && parentBoundTranscludeFn.$$boundTransclude) {
                         parentBoundTranscludeFn = parentBoundTranscludeFn.$$boundTransclude;
                     }
-                    $compileNodes.data('$scope', scope);
-                    compositeLinkFn(scope, $compileNodes, parentBoundTranscludeFn);
-                    return $compileNodes;
+                    var $linkNodes;
+                    if (cloneAttachFn) {
+                        $linkNodes = $compileNodes.clone();
+                        cloneAttachFn($linkNodes, scope);
+                    } else {
+                        $linkNodes = $compileNodes;
+                    }
+                    $linkNodes.data('$scope', scope);
+                    compositeLinkFn(scope, $linkNodes, parentBoundTranscludeFn);
+                    return $linkNodes;
                 };
             }
 
