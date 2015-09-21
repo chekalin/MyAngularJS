@@ -298,7 +298,10 @@ function $CompileProvider($provide) {
                 var derivedSyncDirective = _.assign(
                     {},
                     origAsyncDirective,
-                    {templateUrl: null}
+                    {
+                        templateUrl: null,
+                        transclude: null
+                    }
                 );
                 $compileNode.empty();
                 $http.get(templateUrl).success(function (template) {
@@ -308,15 +311,20 @@ function $CompileProvider($provide) {
                         directives, $compileNode, attrs, previousCompileContext);
                     afterTemplateChildLinkFn = compileNodes($compileNode[0].childNodes);
                     _.forEach(linkQueue, function (linkCall) {
-                        afterTemplateNodeLinkFn(afterTemplateChildLinkFn, linkCall.scope, linkCall.linkNode);
+                        afterTemplateNodeLinkFn(
+                            afterTemplateChildLinkFn,
+                            linkCall.scope,
+                            linkCall.linkNode,
+                            linkCall.boundTranscludeFn
+                        );
                     });
                     linkQueue = null;
                 });
-                return function delayedNodeLinkFn(_ignoreChildLinkFn, scope, linkNode) {
+                return function delayedNodeLinkFn(_ignoreChildLinkFn, scope, linkNode, boundTranscludeFn) {
                     if (linkQueue) {
-                        linkQueue.push({scope: scope, linkNode: linkNode});
+                        linkQueue.push({scope: scope, linkNode: linkNode, boundTranscludeFn: boundTranscludeFn});
                     } else {
-                        afterTemplateNodeLinkFn(afterTemplateChildLinkFn, scope, linkNode);
+                        afterTemplateNodeLinkFn(afterTemplateChildLinkFn, scope, linkNode, boundTranscludeFn);
                     }
                 };
             }
@@ -333,7 +341,8 @@ function $CompileProvider($provide) {
                 var controllerDirectives = previousCompileContext.controllerDirectives;
                 var controllers = {};
                 var templateDirective = previousCompileContext.templateDirective;
-                var childTranscludeFn, hasTranscludeDirective;
+                var childTranscludeFn;
+                var hasTranscludeDirective = previousCompileContext.hasTranscludeDirective;
 
                 function getControllers(require, $element) {
                     if (_.isArray(require)) {
@@ -448,7 +457,8 @@ function $CompileProvider($provide) {
                                 preLinkFns: preLinkFns,
                                 postLinkFns: postLinkFns,
                                 newIsolateScopeDirective: newIsolateScopeDirective,
-                                controllerDirectives: controllerDirectives
+                                controllerDirectives: controllerDirectives,
+                                hasTranscludeDirective: hasTranscludeDirective
                             }
                         );
                         return false;
