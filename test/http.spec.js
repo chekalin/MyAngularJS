@@ -68,7 +68,6 @@ describe('$http', function () {
 
         var response;
         $http(requestConfig).then(function (r) {
-            console.log('Response: ' + r);
             response = r;
         });
         $rootScope.$apply();

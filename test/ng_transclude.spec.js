@@ -48,7 +48,6 @@ describe('ngTransclude', function () {
         injector.invoke(function ($compile, $rootScope) {
             var el = $('<div my-transcluder>Hello</div>');
             $compile(el)($rootScope);
-            console.log(el);
             expect(el.find('> ng-transclude').html()).toEqual('Hello');
         });
     });
