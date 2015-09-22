@@ -420,7 +420,7 @@ function $CompileProvider($provide) {
                         hasTranscludeDirective = true;
                         if (directive.transclude === 'element') {
                             var $originalCompileNode = $compileNode;
-                            $compileNode = $(document.createComment(
+                            $compileNode = attrs.$$element = $(document.createComment(
                                 ' ' + directive.name + ': ' + attrs[directive.name] + ' '
                             ));
                             $originalCompileNode.replaceWith($compileNode);
