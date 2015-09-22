@@ -15,12 +15,6 @@ describe('$controller', function () {
         function MyController() {
             this.invoked = true;
         }
-
-        var something;
-        if (something === null) {
-            console.log('stuff');
-        }
-
         var controller = $controller(MyController);
 
         expect(controller).toBeDefined();
