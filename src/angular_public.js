@@ -1,6 +1,7 @@
 /* global angular, setupModuleLoader, $ParseProvider, $RootScopeProvider, $QProvider, $$QProvider */
 /* global $HttpBackendProvider, $HttpProvider, $CompileProvider */
-/* global $ControllerProvider, ngControllerDirective, ngTranscludeDirective */
+/* global $ControllerProvider, $InterpolateProvider */
+/* global ngControllerDirective, ngTranscludeDirective */
 /* exported publishExternalAPI */
 
 function publishExternalAPI() {
@@ -17,6 +18,7 @@ function publishExternalAPI() {
     ngModule.provider('$http', $HttpProvider);
     ngModule.provider('$compile', $CompileProvider);
     ngModule.provider('$controller', $ControllerProvider);
+    ngModule.provider('$interpolate', $InterpolateProvider);
     ngModule.directive('ngController', ngControllerDirective);
     ngModule.directive('ngTransclude', ngTranscludeDirective);
 }
