@@ -344,6 +344,7 @@ function $CompileProvider($provide) {
                 var templateDirective = previousCompileContext.templateDirective;
                 var childTranscludeFn;
                 var hasTranscludeDirective = previousCompileContext.hasTranscludeDirective;
+                var hasElementTranscludeDirective;
 
                 function getControllers(require, $element) {
                     if (_.isArray(require)) {
@@ -419,6 +420,7 @@ function $CompileProvider($provide) {
                         }
                         hasTranscludeDirective = true;
                         if (directive.transclude === 'element') {
+                            hasElementTranscludeDirective = true;
                             var $originalCompileNode = $compileNode;
                             $compileNode = attrs.$$element = $(document.createComment(
                                 ' ' + directive.name + ': ' + attrs[directive.name] + ' '
@@ -574,11 +576,15 @@ function $CompileProvider($provide) {
                     });
 
                     function scopeBoundTranscludeFn(transcludedScope, cloneAttachFn) {
+                        var transcludeControllers;
                         if (!transcludedScope || !transcludedScope.$watch || !transcludedScope.$evalAsync) {
                             cloneAttachFn = transcludedScope;
                             transcludedScope = undefined;
                         }
-                        return boundTranscludeFn(transcludedScope, cloneAttachFn, scope);
+                        if (hasElementTranscludeDirective) {
+                            transcludeControllers = controllers;
+                        }
+                        return boundTranscludeFn(transcludedScope, cloneAttachFn, transcludeControllers, scope);
                     }
 
                     scopeBoundTranscludeFn.$$boundTransclude = boundTranscludeFn;
@@ -661,11 +667,14 @@ function $CompileProvider($provide) {
                             }
                             var boundTranscludeFn;
                             if (linkFn.nodeLinkFn.transcludeOnThisElement) {
-                                boundTranscludeFn = function (transcludedScope, cloneAttachFn, containingScope) {
+                                boundTranscludeFn = function (transcludedScope, cloneAttachFn,
+                                                              transcludeControllers, containingScope) {
                                     if (!transcludedScope) {
                                         transcludedScope = scope.$new(false, containingScope);
                                     }
-                                    return linkFn.nodeLinkFn.transclude(transcludedScope, cloneAttachFn);
+                                    return linkFn.nodeLinkFn.transclude(transcludedScope, cloneAttachFn, {
+                                        transcludeControllers: transcludeControllers
+                                    });
                                 };
                             } else if (parentBoundTranscludeFn) {
                                 boundTranscludeFn = parentBoundTranscludeFn;
@@ -694,6 +703,7 @@ function $CompileProvider($provide) {
                 var compositeLinkFn = compileNodes($compileNodes, maxPriority);
                 return function publicLinkFn(scope, cloneAttachFn, options) {
                     options = options || {};
+                    var transcludeControllers = options.transcludeControllers;
                     var parentBoundTranscludeFn = options.parentBoundTranscludeFn;
                     if (parentBoundTranscludeFn && parentBoundTranscludeFn.$$boundTransclude) {
                         parentBoundTranscludeFn = parentBoundTranscludeFn.$$boundTransclude;
@@ -705,6 +715,9 @@ function $CompileProvider($provide) {
                     } else {
                         $linkNodes = $compileNodes;
                     }
+                    _.forEach(transcludeControllers, function (controller, name) {
+                        $linkNodes.data('$' + name + 'Controller', controller.instance);
+                    });
                     $linkNodes.data('$scope', scope);
                     compositeLinkFn(scope, $linkNodes, parentBoundTranscludeFn);
                     return $linkNodes;
