@@ -10,7 +10,9 @@ function $InterpolateProvider() {
             var startIndex, endIndex, exp, expFn;
             while (index < text.length) {
                 startIndex = text.indexOf('{{', index);
-                endIndex = text.indexOf('}}', index);
+                if (startIndex !== -1) {
+                    endIndex = text.indexOf('}}', startIndex + 2);
+                }
                 if (startIndex !== -1 && endIndex !== -1) {
                     if (startIndex !== index) {
                         parts.push(text.substring(index, startIndex));
@@ -27,7 +29,7 @@ function $InterpolateProvider() {
             return function interpolationFn(context) {
                 return _.reduce(parts, function (result, part) {
                     if (_.isFunction(part)) {
-                        return result + part(context);
+                        return result + stringify(part(context));
                     } else {
                         return result + part;
                     }
@@ -37,4 +39,14 @@ function $InterpolateProvider() {
 
         return $interpolate;
     }];
+
+    function stringify(value) {
+        if (_.isNull(value) || _.isUndefined(value)) {
+            return '';
+        } else if (_.isObject(value)) {
+            return JSON.stringify(value);
+        } else {
+            return '' + value;
+        }
+    }
 }
