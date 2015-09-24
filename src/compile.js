@@ -121,7 +121,9 @@ function $CompileProvider($provide) {
                 this.$$observers[key] = this.$$observers[key] || [];
                 this.$$observers[key].push(observeFn);
                 $rootScope.$evalAsync(function () {
-                    observeFn(self[key]);
+                    if (!self.$$observers[key].$$inter) {
+                        observeFn(self[key]);
+                    }
                 });
                 return function () {
                     var index = self.$$observers[key].indexOf(observeFn);
@@ -229,6 +231,7 @@ function $CompileProvider($provide) {
                             }
                         }
                         normalizedAttr = directiveNormalize(name.toLowerCase());
+                        addAttrInterpolateDirective(directives, attr.value, normalizedAttr);
                         addDirective(directives, normalizedAttr, 'A', maxPriority, attrStartName, attrEndName);
                         if (isNgAttr || !attrs.hasOwnProperty(normalizedAttr)) {
                             attrs[normalizedAttr] = attr.value.trim();
@@ -261,6 +264,25 @@ function $CompileProvider($provide) {
                 }
                 directives.sort(byPriority);
                 return directives;
+            }
+
+            function addAttrInterpolateDirective(directives, value, name) {
+                var interpolateFn = $interpolate(value, true);
+                if (interpolateFn) {
+                    directives.push({
+                        priority: 100,
+                        compile: function () {
+                            return function link(scope, element, attrs) {
+                                attrs.$$observers = attrs.$$observers || {};
+                                attrs.$$observers[name] = attrs.$$observers[name] || [];
+                                attrs.$$observers[name].$$inter = true;
+                                scope.$watch(interpolateFn, function (newValue) {
+                                    attrs.$set(name, newValue);
+                                });
+                            };
+                        }
+                    });
+                }
             }
 
             function addTextInterpolateDirective(directives, text) {
