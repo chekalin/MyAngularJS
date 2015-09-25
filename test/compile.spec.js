@@ -3607,5 +3607,40 @@ describe('$compile', function () {
                 expect(observerSpy.calls.count()).toBe(1);
             });
         });
+
+        it('is done for attributes by the time other directive is linked', function () {
+            var gotMyAttr;
+            var injector = makeInjectorWithDirectives('myDirective', function () {
+                return {
+                    link: function (scope, element, attrs) {
+                        gotMyAttr = attrs.myAttr;
+                    }
+                };
+            });
+            injector.invoke(function ($compile, $rootScope) {
+                var el = $('<div my-directive my-attr="{{myExpr}}">');
+                $rootScope.myExpr = 'Hello';
+                $compile(el)($rootScope);
+                expect(gotMyAttr).toBe('Hello');
+            });
+        });
+
+        it('is done for attributes by the time bound to isolate scope', function () {
+            var gotMyAttr;
+            var injector = makeInjectorWithDirectives('myDirective', function () {
+                return {
+                    scope: {myAttr: '@'},
+                    link: function (scope) {
+                        gotMyAttr = scope.myAttr;
+                    }
+                };
+            });
+            injector.invoke(function ($compile, $rootScope) {
+                var el = $('<div my-directive my-attr="{{myExpr}}">');
+                $rootScope.myExpr = 'Hello';
+                $compile(el)($rootScope);
+                expect(gotMyAttr).toBe('Hello');
+            });
+        });
     });
 });
