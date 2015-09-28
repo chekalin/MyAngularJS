@@ -3642,5 +3642,52 @@ describe('$compile', function () {
                 expect(gotMyAttr).toBe('Hello');
             });
         });
+
+        it('is one for attributes so that compile-time changes apply', function () {
+            var injector = makeInjectorWithDirectives('myDirective', function () {
+                return {
+                    compile: function (element, attrs) {
+                        attrs.$set('myAttr', '{{myDifferentExpr}}');
+                    }
+                };
+            });
+            injector.invoke(function ($compile, $rootScope) {
+                var el = $('<div my-directive my-attr="{{myExpr}}">');
+                $rootScope.myExpr = 'Hello';
+                $rootScope.myDifferentExpr = 'Other Hello';
+                $compile(el)($rootScope);
+                $rootScope.$apply();
+                expect(el.attr('my-attr')).toEqual('Other Hello');
+            });
+        });
+
+        it('is one for attributes so that compile-time removals apply', function () {
+            var injector = makeInjectorWithDirectives('myDirective', function () {
+                return {
+                    compile: function (element, attrs) {
+                        attrs.$set('myAttr', null);
+                    }
+                };
+            });
+            injector.invoke(function ($compile, $rootScope) {
+                var el = $('<div my-directive my-attr="{{myExpr}}">');
+                $rootScope.myExpr = 'Hello';
+                $compile(el)($rootScope);
+                $rootScope.$apply();
+                expect(el.attr('my-attr')).toBeFalsy();
+            });
+        });
+
+        it('cannot be done for event handler attributes', function () {
+            var injector = createInjector(['ng']);
+            injector.invoke(function ($compile, $rootScope) {
+                $rootScope.myFunction = function () {
+                };
+                var el = $('<button onclick="{{myFunction()}}"></button>');
+                expect(function () {
+                    $compile(el)($rootScope);
+                }).toThrow();
+            });
+        });
     });
 });

@@ -274,6 +274,16 @@ function $CompileProvider($provide) {
                         compile: function () {
                             return {
                                 pre: function link(scope, element, attrs) {
+                                    if (/^(on[a-z]+|formaction)$/.test(name)) {
+                                        throw 'Interpolation for HTML DOM event attributes not allowed';
+                                    }
+                                    var newValue = attrs[name];
+                                    if (newValue !== value) {
+                                        interpolateFn = newValue && $interpolate(newValue, true);
+                                    }
+                                    if (!interpolateFn) {
+                                        return;
+                                    }
                                     attrs.$$observers = attrs.$$observers || {};
                                     attrs.$$observers[name] = attrs.$$observers[name] || [];
                                     attrs.$$observers[name].$$inter = true;
