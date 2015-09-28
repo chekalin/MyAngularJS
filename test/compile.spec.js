@@ -3514,7 +3514,7 @@ describe('$compile', function () {
     });
 
     describe('interpolation', function () {
-        it('is doen for text nodes', function () {
+        it('is done for text nodes', function () {
             var injector = createInjector(['ng']);
             injector.invoke(function ($compile, $rootScope) {
                 var el = $('<div>My expression: {{myExpr}}</div>');
